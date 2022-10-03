@@ -1,0 +1,324 @@
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 10/02/22 16:04:40 Page 1
+Pianificazione urbana
+C o m p i l a t i o n
+
+
+   2   
+      Soluzione dell'esercizio 1
+   6   
+   7  set J insieme delle abitazioni /1*4/;
+   8   
+   9  Parameters
+  10   Tax(j) tassa unitaria
+  11  /
+  12  1 1
+  13  2 1.9
+  14  3 2.7
+  15  4 3.4
+  16  /
+  17   
+  18   S(j) spazio unitario [acri]
+  19   /
+  20   1 0.18
+  21   2 0.28
+  22   3 0.4
+  23   4 0.5
+  24   /
+  25   
+  26   cc(j) costo unitario di cistruzione [kj]
+  27   /
+  28   1 50
+  29   2 70
+  30   3 130
+  31   4 160
+  32   /
+  33   ;
+  34   
+  35  Scalars
+  36      Nmax Numero massimo di edifici demolibili /300/
+  37      s0   Spazio di un vecchio edificio [acri] /0.25/
+  38      cd   Costo di demolizione [k$] /2/
+  39      qs   Quota di spazio non edificabile /0.15/
+  40      p34  Percentuale di trilo+quadri /0.25/
+  41      p1   Percentuale di monolocali /0.2/
+  42      p2   Percentuale di bilocali /0.1/
+  43      B    Budget [k$] /15000/
+  44  ;
+  45   
+  46   
+  47  Variables
+  48      x(j) Numero di abitazioni j costruite
+  49      y    Numero di vecchie abitazioni demolite
+  50      z   Variabili obiettico (tasse totali)
+  51   
+  52  *Positive variables x, y;
+  53  *Modifica la classe del modello da LP a MIP
+  54  Integer variables x,y;
+  55  y.up = Nmax;
+  56   
+  57  Equations
+  58      obiettivo   Funzione obiettivo
+  59      demolizioni Vincolo sulle demolizioni
+  60      spazio      Vincolo di bilancio sullo spazio
+  61      lb34        Lower bound su trilo + quadri
+  62      lb1         Lower bound sui monolocali
+  63      lb2         Lower bound sui bulocali
+  64      budget      Vincolo di budget
+  65  ;
+  66   
+  67  obiettivo.. z =e= sum(j, Tax(j)*x(j));
+  68  demolizioni.. y=l= Nmax;
+  69  spazio.. sum(j, s(j)*x(j)) =l= s0*y*(1-qs);
+  70  *Uso una specifica componente del vettore
+  71  *Selezione di elementi specifici
+  72  lb34.. x('3') + x('4') =g= p34*sum(j,x(j));
+  73  lb1.. x('1') =g= p1*sum(j, x(j));
+  74  lb2.. x('2') =g= p2*sum(j, x(j));
+  75  budget.. sum(j, cc(j)*x(j)) +cd*y =l= B;
+  76   
+  77  Model Urban /all/;
+  78  Urban.optca = 0;
+  79  Urban.optcr = 0;
+  80  *Solve Urban using LP maximing z;
+  81  Solve Urban using MIP maximing z;
+  82   
+  83  display x.l, y.l, z.l
+  84   
+  85  Scalars
+  86   Ntot numero totale di edifici costruiti
+  87   R    rapporto tra spazio occupato e spazio libero
+  88  ;
+  89   
+  90  Ntot = sum(j, x.l(j));
+  91  R    = sum(j, S(j)*x.l(j))/(s0+y.l);
+  92   
+  93   
+  94  display Ntot, R;
+
+
+COMPILATION TIME     =        0.004 SECONDS      3 MB  40.3.0 f227c22a DEX-DEG
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 10/02/22 16:04:40 Page 2
+Pianificazione urbana
+Equation Listing    SOLVE Urban Using MIP From line 81
+
+
+---- obiettivo  =E=  Funzione obiettivo
+
+obiettivo..  - x(1) - 1.9*x(2) - 2.7*x(3) - 3.4*x(4) + z =E= 0 ; (LHS = 0)
+     
+
+---- demolizioni  =L=  Vincolo sulle demolizioni
+
+demolizioni..  y =L= 300 ; (LHS = 0)
+     
+
+---- spazio  =L=  Vincolo di bilancio sullo spazio
+
+spazio..  0.18*x(1) + 0.28*x(2) + 0.4*x(3) + 0.5*x(4) - 0.2125*y =L= 0 ; (LHS = 0)
+     
+
+---- lb34  =G=  Lower bound su trilo + quadri
+
+lb34..  - 0.25*x(1) - 0.25*x(2) + 0.75*x(3) + 0.75*x(4) =G= 0 ; (LHS = 0)
+     
+
+---- lb1  =G=  Lower bound sui monolocali
+
+lb1..  0.8*x(1) - 0.2*x(2) - 0.2*x(3) - 0.2*x(4) =G= 0 ; (LHS = 0)
+     
+
+---- lb2  =G=  Lower bound sui bulocali
+
+lb2..  - 0.1*x(1) + 0.9*x(2) - 0.1*x(3) - 0.1*x(4) =G= 0 ; (LHS = 0)
+     
+
+---- budget  =L=  Vincolo di budget
+
+budget..  50*x(1) + 70*x(2) + 130*x(3) + 160*x(4) + 2*y =L= 15000 ; (LHS = 0)
+     
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 10/02/22 16:04:40 Page 3
+Pianificazione urbana
+Column Listing      SOLVE Urban Using MIP From line 81
+
+
+---- x  Numero di abitazioni j costruite
+
+x(1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1       obiettivo
+        0.18    spazio
+       -0.25    lb34
+        0.8     lb1
+       -0.1     lb2
+       50       budget
+
+x(2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -1.9     obiettivo
+        0.28    spazio
+       -0.25    lb34
+       -0.2     lb1
+        0.9     lb2
+       70       budget
+
+x(3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -2.7     obiettivo
+        0.4     spazio
+        0.75    lb34
+       -0.2     lb1
+       -0.1     lb2
+      130       budget
+
+REMAINING ENTRY SKIPPED
+
+---- y  Numero di vecchie abitazioni demolite
+
+y
+                (.LO, .L, .UP, .M = 0, 0, 300, 0)
+        1       demolizioni
+       -0.2125  spazio
+        2       budget
+
+
+---- z  Variabili obiettico (tasse totali)
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obiettivo
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 10/02/22 16:04:40 Page 4
+Pianificazione urbana
+Range Statistics    SOLVE Urban Using MIP From line 81
+
+
+RANGE STATISTICS (ABSOLUTE NON-ZERO FINITE VALUES)
+
+RHS       [min, max] : [ 3.000E+02, 1.500E+04] - Zero values observed as well
+Bound     [min, max] : [ 3.000E+02, 3.000E+02] - Zero values observed as well
+Matrix    [min, max] : [ 1.000E-01, 1.600E+02]
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 10/02/22 16:04:40 Page 5
+Pianificazione urbana
+Model Statistics    SOLVE Urban Using MIP From line 81
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           7     SINGLE EQUATIONS            7
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES            6
+NON ZERO ELEMENTS            28     DISCRETE VARIABLES          5
+
+
+GENERATION TIME      =        0.094 SECONDS      4 MB  40.3.0 f227c22a DEX-DEG
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 10/02/22 16:04:40 Page 6
+Pianificazione urbana
+Solution Report     SOLVE Urban Using MIP From line 81
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   Urban               OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MAXIMIZE
+     SOLVER  CPLEX               FROM LINE  81
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      1 Optimal
+**** OBJECTIVE VALUE              343.7000
+
+ RESOURCE USAGE, LIMIT          0.269 10000000000.000
+ ITERATION COUNT, LIMIT        40    2147483647
+--- *** This solver runs with a demo license. No commercial use.
+--- GMO setup time: 0.00s
+--- GMO memory 0.50 Mb (peak 0.50 Mb)
+--- Dictionary memory 0.00 Mb
+--- Cplex 22.1.0.0 link memory 0.00 Mb (peak 0.00 Mb)
+--- Starting Cplex
+
+
+--- MIP status (101): integer optimal solution.
+--- Cplex Time: 0.03sec (det. 0.31 ticks)
+
+--- Fixing integer variables and solving final LP...
+
+
+--- Fixed MIP status (1): optimal.
+--- Cplex Time: 0.00sec (det. 0.00 ticks)
+
+
+Proven optimal solution
+MIP Solution:          343.700000    (40 iterations, 25 nodes)
+Final Solve:           343.700000    (0 iterations)
+
+Best possible:         343.700000
+Absolute gap:            0.000000
+Relative gap:            0.000000
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU obiettivo           .              .              .             1.0000      
+---- EQU demolizio~        -INF          245.0000       300.0000          .          
+---- EQU spazio            -INF           -0.1425          .              .          
+---- EQU lb34                .             0.2500        +INF             .          
+---- EQU lb1                 .             0.2000        +INF             .          
+---- EQU lb2                 .            80.1000        +INF             .          
+---- EQU budget            -INF        15000.0000     15000.0000          .          
+
+  obiettivo  Funzione obiettivo
+  demolizioni  Vincolo sulle demolizioni
+  spazio  Vincolo di bilancio sullo spazio
+  lb34  Lower bound su trilo + quadri
+  lb1  Lower bound sui monolocali
+  lb2  Lower bound sui bulocali
+  budget  Vincolo di budget
+
+---- VAR x  Numero di abitazioni j costruite
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+1          .            36.0000        +INF            1.0000      
+2          .            98.0000        +INF            1.9000      
+3          .            45.0000        +INF            2.7000      
+4          .              .            +INF            3.4000      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR y                   .           245.0000       300.0000         EPS         
+---- VAR z                 -INF          343.7000        +INF             .          
+
+  y  Numero di vecchie abitazioni demolite
+  z  Variabili obiettico (tasse totali)
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 10/02/22 16:04:40 Page 7
+Pianificazione urbana
+E x e c u t i o n
+
+
+----     83 VARIABLE x.L  Numero di abitazioni j costruite
+
+1 36.000,    2 98.000,    3 45.000
+
+
+----     83 VARIABLE y.L                   =      245.000  Numero di vecchie abitazioni demolite
+            VARIABLE z.L                   =      343.700  Variabili obiettico (tasse totali)
+
+----     94 PARAMETER Ntot                 =      179.000  numero totale di edifici costruiti
+            PARAMETER R                    =        0.212  rapporto tra spazio occupato e spazio libero
+
+
+EXECUTION TIME       =        0.436 SECONDS      4 MB  40.3.0 f227c22a DEX-DEG
+
+
+USER: GAMS Demo license for marco vinciguerra        G220927|0002CO-GEN
+      unibg, Italy                                             DL074718
+
+
+**** FILE SUMMARY
+
+Input      /Users/marcovinciguerra/Github/Gams/Es1.gms
+Output     /Users/marcovinciguerra/Github/Gams/Es1.lst

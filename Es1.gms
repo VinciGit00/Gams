@@ -68,6 +68,7 @@ obiettivo.. z =e= sum(j, Tax(j)*x(j));
 demolizioni.. y=l= Nmax;
 spazio.. sum(j, s(j)*x(j)) =l= s0*y*(1-qs);
 *Uso una specifica componente del vettore
+*Selezione di elementi specifici
 lb34.. x('3') + x('4') =g= p34*sum(j,x(j));
 lb1.. x('1') =g= p1*sum(j, x(j));
 lb2.. x('2') =g= p2*sum(j, x(j));

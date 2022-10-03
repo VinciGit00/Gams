@@ -1,0 +1,139 @@
+--- Job Es1.gms Start 10/02/22 16:04:40 40.3.0 f227c22a DEX-DEG x86 64bit/Mac OS X
+--- Applying:
+    /Library/Frameworks/GAMS.framework/Versions/40/Resources/gmsprmun.txt
+    /Users/marcovinciguerra/Library/Preferences/GAMS/gamsconfig.yaml
+--- GAMS Parameters defined
+    Input /Users/marcovinciguerra/Github/Gams/Es1.gms
+    PageSize 0
+    ScrDir /Users/marcovinciguerra/Github/Gams/225a/
+    SysDir /Library/Frameworks/GAMS.framework/Versions/40/Resources/
+    LogOption 3
+    ErrMsg 1
+    ErrorLog 99
+    IDE 1
+    LstTitleLeftAligned 1
+Licensee: GAMS Demo license for marco vinciguerra        G220927|0002CO-GEN
+          unibg, Italy                                             DL074718
+          /Users/marcovinciguerra/Library/Application Support/GAMS/gamslice.txt
+          mvincig11@gmail.com, marco vinciguerra                           
+          Demo license for demonstration and instructional purposes only
+Processor information: 1 socket(s), 8 core(s), and 8 thread(s) available
+GAMS 40.3.0   Copyright (C) 1987-2022 GAMS Development. All rights reserved
+--- Starting compilation
+--- Es1.gms(94) 3 Mb
+--- Starting execution: elapsed 0:00:00.038
+--- Es1.gms(79) 4 Mb
+--- Generating MIP model Urban
+--- Es1.gms(81) 4 Mb
+---   7 rows  6 columns  28 non-zeroes
+---   5 discrete-columns
+--- Range statistics (absolute non-zero finite values)
+--- RHS       [min, max] : [ 3.000E+02, 1.500E+04] - Zero values observed as well
+--- Bound     [min, max] : [ 3.000E+02, 3.000E+02] - Zero values observed as well
+--- Matrix    [min, max] : [ 1.000E-01, 1.600E+02]
+--- Executing CPLEX (Solvelink=2): elapsed 0:00:00.133
+
+IBM ILOG CPLEX   40.3.0 f227c22a Sep 16, 2022          DEG x86 64bit/Mac OS X 
+
+--- *** This solver runs with a demo license. No commercial use.
+--- GMO setup time: 0.00s
+--- GMO memory 0.50 Mb (peak 0.50 Mb)
+--- Dictionary memory 0.00 Mb
+--- Cplex 22.1.0.0 link memory 0.00 Mb (peak 0.00 Mb)
+--- Starting Cplex
+
+Version identifier: 22.1.0.0 | 2022-03-09 | 1a383f8ce
+CPXPARAM_Advance                                 0
+CPXPARAM_Simplex_Display                         2
+CPXPARAM_Threads                                 1
+CPXPARAM_MIP_Display                             4
+CPXPARAM_MIP_Pool_Capacity                       0
+CPXPARAM_MIP_Tolerances_AbsMIPGap                0
+CPXPARAM_MIP_Tolerances_MIPGap                   0
+Generic callback                                 0x50
+Found incumbent of value 0.000000 after 0.00 sec. (0.00 ticks)
+Tried aggregator 1 time.
+MIP Presolve eliminated 1 rows and 1 columns.
+MIP Presolve modified 4 coefficients.
+Reduced MIP has 5 rows, 5 columns, and 22 nonzeros.
+Reduced MIP has 0 binaries, 5 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.00 sec. (0.01 ticks)
+Tried aggregator 1 time.
+Reduced MIP has 5 rows, 5 columns, and 22 nonzeros.
+Reduced MIP has 0 binaries, 5 generals, 0 SOSs, and 0 indicators.
+Presolve time = 0.00 sec. (0.01 ticks)
+MIP emphasis: balance optimality and feasibility.
+MIP search method: dynamic search.
+Parallel mode: none, using 1 thread.
+Tried aggregator 1 time.
+No LP presolve or aggregator reductions.
+Presolve time = 0.00 sec. (0.00 ticks)
+
+Iteration      Dual Objective            In Variable           Out Variable
+     1             433.253571                   x(2)           spazio slack
+     2             426.587692                   x(1)              lb1 slack
+     3             425.989535                   x(3)              lb2 slack
+     4             424.846875              lb2 slack           budget slack
+     5             376.933654                      y                   x(3)
+     6             343.965154                   x(3)             lb34 slack
+Root relaxation solution time = 0.00 sec. (0.01 ticks)
+
+        Nodes                                         Cuts/
+   Node  Left     Objective  IInf  Best Integer    Best Bound    ItCnt     Gap
+
+*     0+    0                            0.0000     1333.3000              --- 
+Found incumbent of value 0.000000 after 0.02 sec. (0.04 ticks)
+      0     0      343.9652     4        0.0000      343.9652        6     --- 
+*     0+    0                          343.7000      343.9652             0.08%
+Found incumbent of value 343.700000 after 0.02 sec. (0.05 ticks)
+      0     0      343.8533     5      343.7000      Fract: 3       10    0.04%
+      0     0      343.7482     4      343.7000       Cuts: 3       13    0.01%
+      0     0      343.7127     5      343.7000   ZeroHalf: 1       14    0.00%
+      0     2      343.7127     5      343.7000      343.7126       14    0.00%
+Elapsed time = 0.03 sec. (0.21 ticks, tree = 0.01 MB)
+
+Zero-half cuts applied:  2
+Gomory fractional cuts applied:  2
+
+Root node processing (before b&c):
+  Real time             =    0.02 sec. (0.21 ticks)
+Sequential b&c:
+  Real time             =    0.00 sec. (0.10 ticks)
+                          ------------
+Total (root+branch&cut) =    0.03 sec. (0.31 ticks)
+
+--- MIP status (101): integer optimal solution.
+--- Cplex Time: 0.03sec (det. 0.31 ticks)
+
+--- Fixing integer variables and solving final LP...
+
+Version identifier: 22.1.0.0 | 2022-03-09 | 1a383f8ce
+CPXPARAM_Advance                                 2
+CPXPARAM_Simplex_Display                         2
+CPXPARAM_Threads                                 1
+CPXPARAM_MIP_Display                             4
+CPXPARAM_MIP_Pool_Capacity                       0
+CPXPARAM_MIP_Tolerances_AbsMIPGap                0
+CPXPARAM_MIP_Tolerances_MIPGap                   0
+Tried aggregator 1 time.
+LP Presolve eliminated 6 rows and 6 columns.
+All rows and columns eliminated.
+Presolve time = 0.00 sec. (0.00 ticks)
+
+--- Fixed MIP status (1): optimal.
+--- Cplex Time: 0.00sec (det. 0.00 ticks)
+
+
+Proven optimal solution
+MIP Solution:          343.700000    (40 iterations, 25 nodes)
+Final Solve:           343.700000    (0 iterations)
+
+Best possible:         343.700000
+Absolute gap:            0.000000
+Relative gap:            0.000000
+
+--- Reading solution for model Urban
+--- Executing after solve: elapsed 0:00:00.472
+--- Es1.gms(94) 4 Mb
+*** Status: Normal completion
+--- Job Es1.gms Stop 10/02/22 16:04:40 elapsed 0:00:00.473

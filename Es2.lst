@@ -1,0 +1,298 @@
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 10/02/22 16:05:01 Page 1
+Pianificazione multiperiodo della produzione
+C o m p i l a t i o n
+
+
+   2   
+   3  Sets
+   4      J insieme dei prodotti da produrre /j1*j4/
+   5      I insieme dei reparti /i1*i4/
+   6  ;
+   7   
+   8   Parameters
+   9      domanda(j) domanda massima che può produrre l'azienda
+  10      /
+  11      j1 800
+  12      j2 750
+  13      j3 600
+  14      j4 500
+  15      /
+  16   
+  17      limite(i) limite di produzione
+  18      /
+  19      i1 1000
+  20      i2 1000
+  21      i3 1000
+  22      i4 1000
+  23      /
+  24   
+  25      profitto(j) profitto per singola unità
+  26      /
+  27      j1 30
+  28      j2 40
+  29      j3 20
+  30      j4 10
+  31      /
+  32   
+  33      penality(j) perdità per unità non svolta
+  34      /
+  35      j1 15
+  36      j2 20
+  37      j3 10
+  38      j4 8
+  39      /
+  40  ;
+  41   
+  42   
+  43  Table A(i,j)
+  44      j1   j2   j3   j4
+  45  i1  0.3  0.3  0.25 0.15
+  46  i2  0.25 0.35 0.3  0.1
+  47  i3  0.45 0.5  0.4  0.22
+  48  i4  0.15 0.15 0.1  0.06
+  49  ;
+  50   
+  51  Variables
+  52      x(j) Produzione ottimale
+  53      z    Variabile risposta
+  54  ;
+  55   
+  56  Integer variable x;
+  57   
+  58  Equations
+  59     timelimit(i)
+  60     produzione(j)
+  61     guadagno
+  62   
+  63  ;
+  64   
+  65  timelimit(i).. sum(j, A(i,j)*x(j)) =l= limite(i);
+  66  produzione(j).. x(j) =l= domanda(j);
+  67  guadagno..     z=e= sum(j, x(j)*profitto(j)) - sum(j, (domanda(j)-x(j)*penality(j)));
+  68   
+  69  Model Calculus /all/;
+  70   
+  71  Calculus.optca = 0;
+  72  Calculus.optcr = 0;
+  73  Solve Calculus using MIP maximing z;
+  74  display x.l, z.l;
+  75   
+  76  Parameter tasso(i);
+  77   
+  78  tasso(i) = sum(j, x.l(j)*A(i,j))/limite(i);
+  79   
+  80  display tasso;
+
+
+COMPILATION TIME     =        0.003 SECONDS      3 MB  40.3.0 f227c22a DEX-DEG
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 10/02/22 16:05:01 Page 2
+Pianificazione multiperiodo della produzione
+Equation Listing    SOLVE Calculus Using MIP From line 73
+
+
+---- timelimit  =L=  
+
+timelimit(i1)..  0.3*x(j1) + 0.3*x(j2) + 0.25*x(j3) + 0.15*x(j4) =L= 1000 ; (LHS = 0)
+     
+timelimit(i2)..  0.25*x(j1) + 0.35*x(j2) + 0.3*x(j3) + 0.1*x(j4) =L= 1000 ; (LHS = 0)
+     
+timelimit(i3)..  0.45*x(j1) + 0.5*x(j2) + 0.4*x(j3) + 0.22*x(j4) =L= 1000 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- produzione  =L=  
+
+produzione(j1)..  x(j1) =L= 800 ; (LHS = 0)
+     
+produzione(j2)..  x(j2) =L= 750 ; (LHS = 0)
+     
+produzione(j3)..  x(j3) =L= 600 ; (LHS = 0)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- guadagno  =E=  
+
+guadagno..  - 45*x(j1) - 60*x(j2) - 30*x(j3) - 18*x(j4) + z =E= -2650 ; (LHS = 0, INFES = 2650 ****)
+     
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 10/02/22 16:05:01 Page 3
+Pianificazione multiperiodo della produzione
+Column Listing      SOLVE Calculus Using MIP From line 73
+
+
+---- x  Produzione ottimale
+
+x(j1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        0.3     timelimit(i1)
+        0.25    timelimit(i2)
+        0.45    timelimit(i3)
+        0.15    timelimit(i4)
+        1       produzione(j1)
+      -45       guadagno
+
+x(j2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        0.3     timelimit(i1)
+        0.35    timelimit(i2)
+        0.5     timelimit(i3)
+        0.15    timelimit(i4)
+        1       produzione(j2)
+      -60       guadagno
+
+x(j3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        0.25    timelimit(i1)
+        0.3     timelimit(i2)
+        0.4     timelimit(i3)
+        0.1     timelimit(i4)
+        1       produzione(j3)
+      -30       guadagno
+
+REMAINING ENTRY SKIPPED
+
+---- z  Variabile risposta
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       guadagno
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 10/02/22 16:05:01 Page 4
+Pianificazione multiperiodo della produzione
+Range Statistics    SOLVE Calculus Using MIP From line 73
+
+
+RANGE STATISTICS (ABSOLUTE NON-ZERO FINITE VALUES)
+
+RHS       [min, max] : [ 5.000E+02, 2.650E+03]
+Bound     [min, max] : [        NA,        NA] - Zero values observed as well
+Matrix    [min, max] : [ 6.000E-02, 6.000E+01]
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 10/02/22 16:05:01 Page 5
+Pianificazione multiperiodo della produzione
+Model Statistics    SOLVE Calculus Using MIP From line 73
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            9
+BLOCKS OF VARIABLES           2     SINGLE VARIABLES            5
+NON ZERO ELEMENTS            25     DISCRETE VARIABLES          4
+
+
+GENERATION TIME      =        0.006 SECONDS      4 MB  40.3.0 f227c22a DEX-DEG
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 10/02/22 16:05:01 Page 6
+Pianificazione multiperiodo della produzione
+Solution Report     SOLVE Calculus Using MIP From line 73
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   Calculus            OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MAXIMIZE
+     SOLVER  CPLEX               FROM LINE  73
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      1 Optimal
+**** OBJECTIVE VALUE            98972.0000
+
+ RESOURCE USAGE, LIMIT          0.017 10000000000.000
+ ITERATION COUNT, LIMIT         2    2147483647
+--- *** This solver runs with a demo license. No commercial use.
+--- GMO setup time: 0.00s
+--- GMO memory 0.50 Mb (peak 0.50 Mb)
+--- Dictionary memory 0.00 Mb
+--- Cplex 22.1.0.0 link memory 0.00 Mb (peak 0.00 Mb)
+--- Starting Cplex
+
+
+--- MIP status (101): integer optimal solution.
+--- Cplex Time: 0.01sec (det. 0.03 ticks)
+
+--- Fixing integer variables and solving final LP...
+
+
+--- Fixed MIP status (1): optimal.
+--- Cplex Time: 0.00sec (det. 0.01 ticks)
+
+
+Proven optimal solution
+MIP Solution:        98972.000000    (2 iterations, 0 nodes)
+Final Solve:         98972.000000    (0 iterations)
+
+Best possible:       98972.000000
+Absolute gap:            0.000000
+Relative gap:            0.000000
+
+
+---- EQU timelimit  
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+i1        -INF          636.8500      1000.0000          .          
+i2        -INF          628.8000      1000.0000          .          
+i3        -INF          999.9800      1000.0000          .          
+i4        -INF          301.2400      1000.0000          .          
+
+---- EQU produzione  
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+j1        -INF          800.0000       800.0000          .          
+j2        -INF          750.0000       750.0000          .          
+j3        -INF          388.0000       600.0000          .          
+j4        -INF          499.0000       500.0000          .          
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU guadagno       -2650.0000     -2650.0000     -2650.0000         1.0000      
+
+---- VAR x  Produzione ottimale
+
+          LOWER          LEVEL          UPPER         MARGINAL
+
+j1          .           800.0000        +INF           45.0000      
+j2          .           750.0000        +INF           60.0000      
+j3          .           388.0000        +INF           30.0000      
+j4          .           499.0000        +INF           18.0000      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR z                 -INF        98972.0000        +INF             .          
+
+  z  Variabile risposta
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 10/02/22 16:05:01 Page 7
+Pianificazione multiperiodo della produzione
+E x e c u t i o n
+
+
+----     74 VARIABLE x.L  Produzione ottimale
+
+j1 800.000,    j2 750.000,    j3 388.000,    j4 499.000
+
+
+----     74 VARIABLE z.L                   =    98972.000  Variabile risposta
+
+----     80 PARAMETER tasso  
+
+i1 0.637,    i2 0.629,    i3 1.000,    i4 0.301
+
+
+
+EXECUTION TIME       =        0.049 SECONDS      4 MB  40.3.0 f227c22a DEX-DEG
+
+
+USER: GAMS Demo license for marco vinciguerra        G220927|0002CO-GEN
+      unibg, Italy                                             DL074718
+
+
+**** FILE SUMMARY
+
+Input      /Users/marcovinciguerra/Github/Gams/Es2.gms
+Output     /Users/marcovinciguerra/Github/Gams/Es2.lst
