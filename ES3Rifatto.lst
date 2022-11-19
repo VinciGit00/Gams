@@ -1,0 +1,1137 @@
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 1
+Es3 rifatto
+C o m p i l a t i o n
+
+
+   2   
+   3  set T /1*6/
+   4   
+   5  Parameters
+   6      D(t)
+   7      /
+   8      1 100
+   9      2 250
+  10      3 190
+  11      4 140
+  12      5 220
+  13      6 110
+  14      /
+  15   
+  16      cp(t)
+  17      /
+  18      1 50
+  19      2 45
+  20      3 55
+  21      4 48
+  22      5 52
+  23      6 50
+  24      /
+  25  ;
+  26   
+  27  Scalars
+  28      I0 giacenza iniziale /0/
+  29      cs costo di giacenza /8/
+  30      Imax giacenza massima del magazzino /100/
+  31  ;
+  32   
+  33  Variables
+  34      x(t) produzione al tempo t
+  35      I(t) magazzino al tempo t
+  36      z    variabile obiettivo
+  37  ;
+  38   
+  39  Positive Variables x, I;
+  40   
+  41  Equations
+  42      obiettivo
+  43      bilancio(t)
+  44  ;
+  45   
+  46  obiettivo.. z =e= sum(t, cp(t)*x(t))+ cs*sum(t, I(t));
+  47  bilancio(t).. I(t-1)$(ord(t)>1) + I0$(ord(t)=1) + x(t) =e= I(t) + D(t);
+  48   
+  49  Model production /all/;
+  50  solve production using LP minimizing z;
+  51   
+  52  Scalars
+  53      Xtot
+  54      Itot
+  55  ;
+  56   
+  57  Xtot = sum(t, x.l(t));
+  58  Itot = sum(t, I.l(t));
+  59   
+  60  display x.l, I.l, z.l, Xtot, Itot;
+  61   
+  62  *PUNTO B
+  63   
+  64  I0 = 50;
+  65  solve production using LP minimizing z;
+  66   
+  67  display x.l, I.l;
+  68   
+  69  *PUNTO C
+  70  I.fx('6') = I0;
+  71   
+  72  solve production using LP minimizing z;
+  73   
+  74  display x.l, I.l, z.l;
+  75   
+  76  *PUNTO D
+  77   
+  78  Equations
+  79   
+  80      sup(t)
+  81  ;
+  82   
+  83   
+  84  sup(t).. I(t) =l= 100;
+  85   
+  86  Model production2 /all/;
+  87  solve production2 using LP minimizing z;
+  88  display x.l, I.l, z.l;
+  89   
+  90   
+  91  Scalars
+  92  parziale
+  93  ;
+  94   
+  95  parziale = z.l;
+  96  Equations
+  97      sup2(t);
+  98  ;
+  99  sup2(t).. I(t) =l= 200;
+ 100   
+ 101   
+ 102  Model production3/obiettivo, bilancio, sup2/;
+ 103  *Model production3/all - sup/;
+ 104  solve production3 using LP minimizing z;
+ 105  display x.l, I.l, z.l;
+ 106   
+ 107  *Poi calcolo il delta
+
+
+COMPILATION TIME     =        0.003 SECONDS      3 MB  40.3.0 f227c22a DEX-DEG
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 2
+Es3 rifatto
+Equation Listing    SOLVE production Using LP From line 50
+
+
+---- obiettivo  =E=  
+
+obiettivo..  - 50*x(1) - 45*x(2) - 55*x(3) - 48*x(4) - 52*x(5) - 50*x(6) - 8*I(1) - 8*I(2) - 8*I(3) - 8*I(4) - 8*I(5) - 8*I(6) + z =E= 0 ; (LHS = 0)
+     
+
+---- bilancio  =E=  
+
+bilancio(1)..  x(1) - I(1) =E= 100 ; (LHS = 0, INFES = 100 ****)
+     
+bilancio(2)..  x(2) + I(1) - I(2) =E= 250 ; (LHS = 0, INFES = 250 ****)
+     
+bilancio(3)..  x(3) + I(2) - I(3) =E= 190 ; (LHS = 0, INFES = 190 ****)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 3
+Es3 rifatto
+Column Listing      SOLVE production Using LP From line 50
+
+
+---- x  produzione al tempo t
+
+x(1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -50       obiettivo
+        1       bilancio(1)
+
+x(2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -45       obiettivo
+        1       bilancio(2)
+
+x(3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -55       obiettivo
+        1       bilancio(3)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- I  magazzino al tempo t
+
+I(1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -8       obiettivo
+       -1       bilancio(1)
+        1       bilancio(2)
+
+I(2)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -8       obiettivo
+       -1       bilancio(2)
+        1       bilancio(3)
+
+I(3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -8       obiettivo
+       -1       bilancio(3)
+        1       bilancio(4)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- z  variabile obiettivo
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obiettivo
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 4
+Es3 rifatto
+Range Statistics    SOLVE production Using LP From line 50
+
+
+RANGE STATISTICS (ABSOLUTE NON-ZERO FINITE VALUES)
+
+RHS       [min, max] : [ 1.000E+02, 2.500E+02] - Zero values observed as well
+Bound     [min, max] : [        NA,        NA] - Zero values observed as well
+Matrix    [min, max] : [ 1.000E+00, 5.500E+01]
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 5
+Es3 rifatto
+Model Statistics    SOLVE production Using LP From line 50
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS            7
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           13
+NON ZERO ELEMENTS            30
+
+
+GENERATION TIME      =        0.007 SECONDS      4 MB  40.3.0 f227c22a DEX-DEG
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 6
+Es3 rifatto
+Solution Report     SOLVE production Using LP From line 50
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   production          OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  50
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      1 Optimal
+**** OBJECTIVE VALUE            49980.0000
+
+ RESOURCE USAGE, LIMIT          0.012 10000000000.000
+ ITERATION COUNT, LIMIT         0    2147483647
+--- *** This solver runs with a demo license. No commercial use.
+--- GMO setup time: 0.00s
+--- GMO memory 0.50 Mb (peak 0.50 Mb)
+--- Dictionary memory 0.00 Mb
+--- Cplex 22.1.0.0 link memory 0.00 Mb (peak 0.00 Mb)
+--- Starting Cplex
+
+
+--- LP status (1): optimal.
+--- Cplex Time: 0.00sec (det. 0.01 ticks)
+
+
+Optimal solution found
+Objective:        49980.000000
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU obiettivo           .              .              .             1.0000      
+
+---- EQU bilancio  
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+1       100.0000       100.0000       100.0000        50.0000      
+2       250.0000       250.0000       250.0000        45.0000      
+3       190.0000       190.0000       190.0000        53.0000      
+4       140.0000       140.0000       140.0000        48.0000      
+5       220.0000       220.0000       220.0000        52.0000      
+6       110.0000       110.0000       110.0000        50.0000      
+
+---- VAR x  produzione al tempo t
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+1          .           100.0000        +INF             .          
+2          .           440.0000        +INF             .          
+3          .              .            +INF            2.0000      
+4          .           140.0000        +INF             .          
+5          .           220.0000        +INF             .          
+6          .           110.0000        +INF             .          
+
+---- VAR I  magazzino al tempo t
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+1          .              .            +INF           13.0000      
+2          .           190.0000        +INF             .          
+3          .              .            +INF           13.0000      
+4          .              .            +INF            4.0000      
+5          .              .            +INF           10.0000      
+6          .              .            +INF           58.0000      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR z                 -INF        49980.0000        +INF             .          
+
+  z  variabile obiettivo
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 7
+Es3 rifatto
+E x e c u t i o n
+
+
+----     60 VARIABLE x.L  produzione al tempo t
+
+1 100.000,    2 440.000,    4 140.000,    5 220.000,    6 110.000
+
+
+----     60 VARIABLE I.L  magazzino al tempo t
+
+2 190.000
+
+
+----     60 VARIABLE z.L                   =    49980.000  variabile obiettivo
+            PARAMETER Xtot                 =     1010.000  
+            PARAMETER Itot                 =      190.000  
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 8
+Es3 rifatto
+Equation Listing    SOLVE production Using LP From line 65
+
+
+---- obiettivo  =E=  
+
+obiettivo..  - 50*x(1) - 45*x(2) - 55*x(3) - 48*x(4) - 52*x(5) - 50*x(6) - 8*I(1) - 8*I(2) - 8*I(3) - 8*I(4) - 8*I(5) - 8*I(6) + z =E= 0 ; (LHS = 0)
+     
+
+---- bilancio  =E=  
+
+bilancio(1)..  x(1) - I(1) =E= 50 ; (LHS = 100, INFES = 50 ****)
+     
+bilancio(2)..  x(2) + I(1) - I(2) =E= 250 ; (LHS = 250)
+     
+bilancio(3)..  x(3) + I(2) - I(3) =E= 190 ; (LHS = 190)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 9
+Es3 rifatto
+Column Listing      SOLVE production Using LP From line 65
+
+
+---- x  produzione al tempo t
+
+x(1)
+                (.LO, .L, .UP, .M = 0, 100, +INF, 0)
+      -50       obiettivo
+        1       bilancio(1)
+
+x(2)
+                (.LO, .L, .UP, .M = 0, 440, +INF, 0)
+      -45       obiettivo
+        1       bilancio(2)
+
+x(3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 2)
+      -55       obiettivo
+        1       bilancio(3)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- I  magazzino al tempo t
+
+I(1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 13)
+       -8       obiettivo
+       -1       bilancio(1)
+        1       bilancio(2)
+
+I(2)
+                (.LO, .L, .UP, .M = 0, 190, +INF, 0)
+       -8       obiettivo
+       -1       bilancio(2)
+        1       bilancio(3)
+
+I(3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 13)
+       -8       obiettivo
+       -1       bilancio(3)
+        1       bilancio(4)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- z  variabile obiettivo
+
+z
+                (.LO, .L, .UP, .M = -INF, 49980, +INF, 0)
+        1       obiettivo
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 10
+Es3 rifatto
+Range Statistics    SOLVE production Using LP From line 65
+
+
+RANGE STATISTICS (ABSOLUTE NON-ZERO FINITE VALUES)
+
+RHS       [min, max] : [ 5.000E+01, 2.500E+02] - Zero values observed as well
+Bound     [min, max] : [        NA,        NA] - Zero values observed as well
+Matrix    [min, max] : [ 1.000E+00, 5.500E+01]
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 11
+Es3 rifatto
+Model Statistics    SOLVE production Using LP From line 65
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS            7
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           13
+NON ZERO ELEMENTS            30
+
+
+GENERATION TIME      =        0.001 SECONDS      4 MB  40.3.0 f227c22a DEX-DEG
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 12
+Es3 rifatto
+Solution Report     SOLVE production Using LP From line 65
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   production          OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  65
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      1 Optimal
+**** OBJECTIVE VALUE            47480.0000
+
+ RESOURCE USAGE, LIMIT          0.012 10000000000.000
+ ITERATION COUNT, LIMIT         0    2147483647
+--- *** This solver runs with a demo license. No commercial use.
+--- GMO setup time: 0.00s
+--- GMO memory 0.50 Mb (peak 0.50 Mb)
+--- Dictionary memory 0.00 Mb
+--- Cplex 22.1.0.0 link memory 0.00 Mb (peak 0.00 Mb)
+--- Starting Cplex
+
+
+--- LP status (1): optimal.
+--- Cplex Time: 0.00sec (det. 0.01 ticks)
+
+
+Optimal solution found
+Objective:        47480.000000
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU obiettivo           .              .              .             1.0000      
+
+---- EQU bilancio  
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+1        50.0000        50.0000        50.0000        50.0000      
+2       250.0000       250.0000       250.0000        45.0000      
+3       190.0000       190.0000       190.0000        53.0000      
+4       140.0000       140.0000       140.0000        48.0000      
+5       220.0000       220.0000       220.0000        52.0000      
+6       110.0000       110.0000       110.0000        50.0000      
+
+---- VAR x  produzione al tempo t
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+1          .            50.0000        +INF             .          
+2          .           440.0000        +INF             .          
+3          .              .            +INF            2.0000      
+4          .           140.0000        +INF             .          
+5          .           220.0000        +INF             .          
+6          .           110.0000        +INF             .          
+
+---- VAR I  magazzino al tempo t
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+1          .              .            +INF           13.0000      
+2          .           190.0000        +INF             .          
+3          .              .            +INF           13.0000      
+4          .              .            +INF            4.0000      
+5          .              .            +INF           10.0000      
+6          .              .            +INF           58.0000      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR z                 -INF        47480.0000        +INF             .          
+
+  z  variabile obiettivo
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 13
+Es3 rifatto
+E x e c u t i o n
+
+
+----     67 VARIABLE x.L  produzione al tempo t
+
+1  50.000,    2 440.000,    4 140.000,    5 220.000,    6 110.000
+
+
+----     67 VARIABLE I.L  magazzino al tempo t
+
+2 190.000
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 14
+Es3 rifatto
+Equation Listing    SOLVE production Using LP From line 72
+
+
+---- obiettivo  =E=  
+
+obiettivo..  - 50*x(1) - 45*x(2) - 55*x(3) - 48*x(4) - 52*x(5) - 50*x(6) - 8*I(1) - 8*I(2) - 8*I(3) - 8*I(4) - 8*I(5) - 8*I(6) + z =E= 0 ; (LHS = -400, INFES = 400 ****)
+     
+
+---- bilancio  =E=  
+
+bilancio(1)..  x(1) - I(1) =E= 50 ; (LHS = 50)
+     
+bilancio(2)..  x(2) + I(1) - I(2) =E= 250 ; (LHS = 250)
+     
+bilancio(3)..  x(3) + I(2) - I(3) =E= 190 ; (LHS = 190)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 15
+Es3 rifatto
+Column Listing      SOLVE production Using LP From line 72
+
+
+---- x  produzione al tempo t
+
+x(1)
+                (.LO, .L, .UP, .M = 0, 50, +INF, 0)
+      -50       obiettivo
+        1       bilancio(1)
+
+x(2)
+                (.LO, .L, .UP, .M = 0, 440, +INF, 0)
+      -45       obiettivo
+        1       bilancio(2)
+
+x(3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 2)
+      -55       obiettivo
+        1       bilancio(3)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- I  magazzino al tempo t
+
+I(1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 13)
+       -8       obiettivo
+       -1       bilancio(1)
+        1       bilancio(2)
+
+I(2)
+                (.LO, .L, .UP, .M = 0, 190, +INF, 0)
+       -8       obiettivo
+       -1       bilancio(2)
+        1       bilancio(3)
+
+I(3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 13)
+       -8       obiettivo
+       -1       bilancio(3)
+        1       bilancio(4)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- z  variabile obiettivo
+
+z
+                (.LO, .L, .UP, .M = -INF, 47480, +INF, 0)
+        1       obiettivo
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 16
+Es3 rifatto
+Range Statistics    SOLVE production Using LP From line 72
+
+
+RANGE STATISTICS (ABSOLUTE NON-ZERO FINITE VALUES)
+
+RHS       [min, max] : [ 5.000E+01, 2.500E+02] - Zero values observed as well
+Bound     [min, max] : [ 5.000E+01, 5.000E+01] - Zero values observed as well
+Matrix    [min, max] : [ 1.000E+00, 5.500E+01]
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 17
+Es3 rifatto
+Model Statistics    SOLVE production Using LP From line 72
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           2     SINGLE EQUATIONS            7
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           13
+NON ZERO ELEMENTS            30
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  40.3.0 f227c22a DEX-DEG
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 18
+Es3 rifatto
+Solution Report     SOLVE production Using LP From line 72
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   production          OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  72
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      1 Optimal
+**** OBJECTIVE VALUE            50380.0000
+
+ RESOURCE USAGE, LIMIT          0.012 10000000000.000
+ ITERATION COUNT, LIMIT         0    2147483647
+--- *** This solver runs with a demo license. No commercial use.
+--- GMO setup time: 0.00s
+--- GMO memory 0.50 Mb (peak 0.50 Mb)
+--- Dictionary memory 0.00 Mb
+--- Cplex 22.1.0.0 link memory 0.00 Mb (peak 0.00 Mb)
+--- Starting Cplex
+
+
+--- LP status (1): optimal.
+--- Cplex Time: 0.00sec (det. 0.01 ticks)
+
+
+Optimal solution found
+Objective:        50380.000000
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU obiettivo           .              .              .             1.0000      
+
+---- EQU bilancio  
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+1        50.0000        50.0000        50.0000        50.0000      
+2       250.0000       250.0000       250.0000        45.0000      
+3       190.0000       190.0000       190.0000        53.0000      
+4       140.0000       140.0000       140.0000        48.0000      
+5       220.0000       220.0000       220.0000        52.0000      
+6       110.0000       110.0000       110.0000        50.0000      
+
+---- VAR x  produzione al tempo t
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+1          .            50.0000        +INF             .          
+2          .           440.0000        +INF             .          
+3          .              .            +INF            2.0000      
+4          .           140.0000        +INF             .          
+5          .           220.0000        +INF             .          
+6          .           160.0000        +INF             .          
+
+---- VAR I  magazzino al tempo t
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+1          .              .            +INF           13.0000      
+2          .           190.0000        +INF             .          
+3          .              .            +INF           13.0000      
+4          .              .            +INF            4.0000      
+5          .              .            +INF           10.0000      
+6        50.0000        50.0000        50.0000        58.0000      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR z                 -INF        50380.0000        +INF             .          
+
+  z  variabile obiettivo
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 19
+Es3 rifatto
+E x e c u t i o n
+
+
+----     74 VARIABLE x.L  produzione al tempo t
+
+1  50.000,    2 440.000,    4 140.000,    5 220.000,    6 160.000
+
+
+----     74 VARIABLE I.L  magazzino al tempo t
+
+2 190.000,    6  50.000
+
+
+----     74 VARIABLE z.L                   =    50380.000  variabile obiettivo
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 20
+Es3 rifatto
+Equation Listing    SOLVE production2 Using LP From line 87
+
+
+---- obiettivo  =E=  
+
+obiettivo..  - 50*x(1) - 45*x(2) - 55*x(3) - 48*x(4) - 52*x(5) - 50*x(6) - 8*I(1) - 8*I(2) - 8*I(3) - 8*I(4) - 8*I(5) - 8*I(6) + z =E= 0 ; (LHS = 0)
+     
+
+---- bilancio  =E=  
+
+bilancio(1)..  x(1) - I(1) =E= 50 ; (LHS = 50)
+     
+bilancio(2)..  x(2) + I(1) - I(2) =E= 250 ; (LHS = 250)
+     
+bilancio(3)..  x(3) + I(2) - I(3) =E= 190 ; (LHS = 190)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- sup  =L=  
+
+sup(1)..  I(1) =L= 100 ; (LHS = 0)
+     
+sup(2)..  I(2) =L= 100 ; (LHS = 190, INFES = 90 ****)
+     
+sup(3)..  I(3) =L= 100 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 21
+Es3 rifatto
+Column Listing      SOLVE production2 Using LP From line 87
+
+
+---- x  produzione al tempo t
+
+x(1)
+                (.LO, .L, .UP, .M = 0, 50, +INF, 0)
+      -50       obiettivo
+        1       bilancio(1)
+
+x(2)
+                (.LO, .L, .UP, .M = 0, 440, +INF, 0)
+      -45       obiettivo
+        1       bilancio(2)
+
+x(3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 2)
+      -55       obiettivo
+        1       bilancio(3)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- I  magazzino al tempo t
+
+I(1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 13)
+       -8       obiettivo
+       -1       bilancio(1)
+        1       bilancio(2)
+        1       sup(1)
+
+I(2)
+                (.LO, .L, .UP, .M = 0, 190, +INF, 0)
+       -8       obiettivo
+       -1       bilancio(2)
+        1       bilancio(3)
+        1       sup(2)
+
+I(3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 13)
+       -8       obiettivo
+       -1       bilancio(3)
+        1       bilancio(4)
+        1       sup(3)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- z  variabile obiettivo
+
+z
+                (.LO, .L, .UP, .M = -INF, 50380, +INF, 0)
+        1       obiettivo
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 22
+Es3 rifatto
+Range Statistics    SOLVE production2 Using LP From line 87
+
+
+RANGE STATISTICS (ABSOLUTE NON-ZERO FINITE VALUES)
+
+RHS       [min, max] : [ 5.000E+01, 2.500E+02] - Zero values observed as well
+Bound     [min, max] : [ 5.000E+01, 5.000E+01] - Zero values observed as well
+Matrix    [min, max] : [ 1.000E+00, 5.500E+01]
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 23
+Es3 rifatto
+Model Statistics    SOLVE production2 Using LP From line 87
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           13
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           13
+NON ZERO ELEMENTS            36
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  40.3.0 f227c22a DEX-DEG
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 24
+Es3 rifatto
+Solution Report     SOLVE production2 Using LP From line 87
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   production2         OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  87
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      1 Optimal
+**** OBJECTIVE VALUE            50560.0000
+
+ RESOURCE USAGE, LIMIT          0.012 10000000000.000
+ ITERATION COUNT, LIMIT         0    2147483647
+--- *** This solver runs with a demo license. No commercial use.
+--- GMO setup time: 0.00s
+--- GMO memory 0.50 Mb (peak 0.50 Mb)
+--- Dictionary memory 0.00 Mb
+--- Cplex 22.1.0.0 link memory 0.00 Mb (peak 0.00 Mb)
+--- Starting Cplex
+
+
+--- LP status (1): optimal.
+--- Cplex Time: 0.00sec (det. 0.01 ticks)
+
+
+Optimal solution found
+Objective:        50560.000000
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU obiettivo           .              .              .             1.0000      
+
+---- EQU bilancio  
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+1        50.0000        50.0000        50.0000        50.0000      
+2       250.0000       250.0000       250.0000        45.0000      
+3       190.0000       190.0000       190.0000        55.0000      
+4       140.0000       140.0000       140.0000        48.0000      
+5       220.0000       220.0000       220.0000        52.0000      
+6       110.0000       110.0000       110.0000        50.0000      
+
+---- EQU sup  
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+1        -INF             .           100.0000          .          
+2        -INF          100.0000       100.0000        -2.0000      
+3        -INF             .           100.0000          .          
+4        -INF             .           100.0000          .          
+5        -INF             .           100.0000          .          
+6        -INF           50.0000       100.0000          .          
+
+---- VAR x  produzione al tempo t
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+1          .            50.0000        +INF             .          
+2          .           350.0000        +INF             .          
+3          .            90.0000        +INF             .          
+4          .           140.0000        +INF             .          
+5          .           220.0000        +INF             .          
+6          .           160.0000        +INF             .          
+
+---- VAR I  magazzino al tempo t
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+1          .              .            +INF           13.0000      
+2          .           100.0000        +INF             .          
+3          .              .            +INF           15.0000      
+4          .              .            +INF            4.0000      
+5          .              .            +INF           10.0000      
+6        50.0000        50.0000        50.0000        58.0000      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR z                 -INF        50560.0000        +INF             .          
+
+  z  variabile obiettivo
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 25
+Es3 rifatto
+E x e c u t i o n
+
+
+----     88 VARIABLE x.L  produzione al tempo t
+
+1  50.000,    2 350.000,    3  90.000,    4 140.000,    5 220.000,    6 160.000
+
+
+----     88 VARIABLE I.L  magazzino al tempo t
+
+2 100.000,    6  50.000
+
+
+----     88 VARIABLE z.L                   =    50560.000  variabile obiettivo
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 26
+Es3 rifatto
+Equation Listing    SOLVE production3 Using LP From line 104
+
+
+---- obiettivo  =E=  
+
+obiettivo..  - 50*x(1) - 45*x(2) - 55*x(3) - 48*x(4) - 52*x(5) - 50*x(6) - 8*I(1) - 8*I(2) - 8*I(3) - 8*I(4) - 8*I(5) - 8*I(6) + z =E= 0 ; (LHS = 0)
+     
+
+---- bilancio  =E=  
+
+bilancio(1)..  x(1) - I(1) =E= 50 ; (LHS = 50)
+     
+bilancio(2)..  x(2) + I(1) - I(2) =E= 250 ; (LHS = 250)
+     
+bilancio(3)..  x(3) + I(2) - I(3) =E= 190 ; (LHS = 190)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- sup2  =L=  
+
+sup2(1)..  I(1) =L= 200 ; (LHS = 0)
+     
+sup2(2)..  I(2) =L= 200 ; (LHS = 100)
+     
+sup2(3)..  I(3) =L= 200 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 27
+Es3 rifatto
+Column Listing      SOLVE production3 Using LP From line 104
+
+
+---- x  produzione al tempo t
+
+x(1)
+                (.LO, .L, .UP, .M = 0, 50, +INF, 0)
+      -50       obiettivo
+        1       bilancio(1)
+
+x(2)
+                (.LO, .L, .UP, .M = 0, 350, +INF, 0)
+      -45       obiettivo
+        1       bilancio(2)
+
+x(3)
+                (.LO, .L, .UP, .M = 0, 90, +INF, 0)
+      -55       obiettivo
+        1       bilancio(3)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- I  magazzino al tempo t
+
+I(1)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 13)
+       -8       obiettivo
+       -1       bilancio(1)
+        1       bilancio(2)
+        1       sup2(1)
+
+I(2)
+                (.LO, .L, .UP, .M = 0, 100, +INF, 0)
+       -8       obiettivo
+       -1       bilancio(2)
+        1       bilancio(3)
+        1       sup2(2)
+
+I(3)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 15)
+       -8       obiettivo
+       -1       bilancio(3)
+        1       bilancio(4)
+        1       sup2(3)
+
+REMAINING 3 ENTRIES SKIPPED
+
+---- z  variabile obiettivo
+
+z
+                (.LO, .L, .UP, .M = -INF, 50560, +INF, 0)
+        1       obiettivo
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 28
+Es3 rifatto
+Range Statistics    SOLVE production3 Using LP From line 104
+
+
+RANGE STATISTICS (ABSOLUTE NON-ZERO FINITE VALUES)
+
+RHS       [min, max] : [ 5.000E+01, 2.500E+02] - Zero values observed as well
+Bound     [min, max] : [ 5.000E+01, 5.000E+01] - Zero values observed as well
+Matrix    [min, max] : [ 1.000E+00, 5.500E+01]
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 29
+Es3 rifatto
+Model Statistics    SOLVE production3 Using LP From line 104
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           13
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES           13
+NON ZERO ELEMENTS            36
+
+
+GENERATION TIME      =        0.001 SECONDS      4 MB  40.3.0 f227c22a DEX-DEG
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 30
+Es3 rifatto
+Solution Report     SOLVE production3 Using LP From line 104
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   production3         OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  104
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      1 Optimal
+**** OBJECTIVE VALUE            50380.0000
+
+ RESOURCE USAGE, LIMIT          0.013 10000000000.000
+ ITERATION COUNT, LIMIT         1    2147483647
+--- *** This solver runs with a demo license. No commercial use.
+--- GMO setup time: 0.00s
+--- GMO memory 0.50 Mb (peak 0.50 Mb)
+--- Dictionary memory 0.00 Mb
+--- Cplex 22.1.0.0 link memory 0.00 Mb (peak 0.00 Mb)
+--- Starting Cplex
+
+
+--- LP status (1): optimal.
+--- Cplex Time: 0.00sec (det. 0.02 ticks)
+
+
+Optimal solution found
+Objective:        50380.000000
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU obiettivo           .              .              .             1.0000      
+
+---- EQU bilancio  
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+1        50.0000        50.0000        50.0000        50.0000      
+2       250.0000       250.0000       250.0000        45.0000      
+3       190.0000       190.0000       190.0000        53.0000      
+4       140.0000       140.0000       140.0000        48.0000      
+5       220.0000       220.0000       220.0000        52.0000      
+6       110.0000       110.0000       110.0000        50.0000      
+
+---- EQU sup2  
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+1        -INF             .           200.0000          .          
+2        -INF          190.0000       200.0000          .          
+3        -INF             .           200.0000          .          
+4        -INF             .           200.0000          .          
+5        -INF             .           200.0000          .          
+6        -INF           50.0000       200.0000          .          
+
+---- VAR x  produzione al tempo t
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+1          .            50.0000        +INF             .          
+2          .           440.0000        +INF             .          
+3          .              .            +INF            2.0000      
+4          .           140.0000        +INF             .          
+5          .           220.0000        +INF             .          
+6          .           160.0000        +INF             .          
+
+---- VAR I  magazzino al tempo t
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+1          .              .            +INF           13.0000      
+2          .           190.0000        +INF             .          
+3          .              .            +INF           13.0000      
+4          .              .            +INF            4.0000      
+5          .              .            +INF           10.0000      
+6        50.0000        50.0000        50.0000        58.0000      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR z                 -INF        50380.0000        +INF             .          
+
+  z  variabile obiettivo
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/19/22 16:58:44 Page 31
+Es3 rifatto
+E x e c u t i o n
+
+
+----    105 VARIABLE x.L  produzione al tempo t
+
+1  50.000,    2 440.000,    4 140.000,    5 220.000,    6 160.000
+
+
+----    105 VARIABLE I.L  magazzino al tempo t
+
+2 190.000,    6  50.000
+
+
+----    105 VARIABLE z.L                   =    50380.000  variabile obiettivo
+
+
+EXECUTION TIME       =        0.206 SECONDS      4 MB  40.3.0 f227c22a DEX-DEG
+
+
+USER: GAMS Demo license for marco vinciguerra        G220927|0002CO-GEN
+      unibg, Italy                                             DL074718
+
+
+**** FILE SUMMARY
+
+Input      /Users/marcovinciguerra/Github/Gams/ES3Rifatto.gms
+Output     /Users/marcovinciguerra/Github/Gams/ES3Rifatto.lst
