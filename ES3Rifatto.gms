@@ -36,6 +36,7 @@ Variables
     z    variabile obiettivo
 ;
  
+*Le variabili devono essere positive
 Positive Variables x, I;
 
 Equations

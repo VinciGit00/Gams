@@ -62,9 +62,9 @@ Equations
    
 ;
 
-timelimit(i).. sum(j, A(i,j)*x(j)) =l= limite(i);
+timelimit(i)..  sum(j, A(i,j)*x(j)) =l= limite(i);
 produzione(j).. x(j) =l= domanda(j);
-guadagno..     z=e= sum(j, x(j)*profitto(j)) - sum(j, (domanda(j)-x(j)*penality(j)));
+guadagno..      z=e= sum(j, x(j)*profitto(j)) - sum(j, (domanda(j)-x(j)*penality(j)));
 
 Model Calculus /all/;
 

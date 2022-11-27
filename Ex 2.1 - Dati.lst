@@ -1,0 +1,55 @@
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/25/22 12:12:10 Page 1
+Costi Fissi - Dati
+C o m p i l a t i o n
+
+
+   2   
+      Dati dell'esercizio 1 (Modelli 2)
+   6   
+   7  Set J insieme delle compagnie telefoniche /A*C/ ;
+   8   
+   9  Parameters
+  10   F(j) canone fisso di j
+  11  /
+  12  A 16
+  13  B 25
+  14  C 22
+  15  /
+  16   
+  17   c(j) costo variabile di j
+  18  /
+  19  A  0.25
+  20  B  0.21
+  21  C  0.22
+  22  /
+  23  ;
+  24   
+  25  Scalars
+  26   D domanda / 250 /
+  27   S soglia / 100 /
+  28  ;
+  29   
+  30  Parameters
+  31   c1(j) costo entro la soglia
+  32   c2(j) costo oltre la soglia
+  33  ;
+  34   
+  35   
+  36   
+  37   
+
+
+COMPILATION TIME     =        0.003 SECONDS      3 MB  40.3.0 f227c22a DEX-DEG
+
+
+EXECUTION TIME       =        0.000 SECONDS      3 MB  40.3.0 f227c22a DEX-DEG
+
+
+USER: GAMS Demo license for marco vinciguerra        G220927|0002CO-GEN
+      unibg, Italy                                             DL074718
+
+
+**** FILE SUMMARY
+
+Input      /Users/marcovinciguerra/Desktop/Ex 2.1 - Dati.gms
+Output     /Users/marcovinciguerra/Github/Gams/Ex 2.1 - Dati.lst

@@ -1,0 +1,51 @@
+B 3 C o m p i l a t i o n
+B 96 Equation Listing    SOLVE Fix Using MIP From line 57
+D 99 obiettivo
+D 104 utilizzo
+D 109 coerenza
+B 119 Column Listing      SOLVE Fix Using MIP From line 57
+E 122 x
+E 143 y
+E 161 z
+B 169 Range Statistics    SOLVE Fix Using MIP From line 57
+B 180 Model Statistics    SOLVE Fix Using MIP From line 57
+B 193 Solution Report     SOLVE Fix Using MIP From line 57
+F 226 obiettivo
+F 227 utilizzo
+F 229 coerenza
+G 237 x
+G 245 y
+G 255 z
+B 263 E x e c u t i o n
+I 263 x
+I 269 y
+I 275 z
+B 279 Equation Listing    SOLVE fix_b Using MIP From line 87
+D 282 obiettivo_b
+D 287 utilizzo
+D 292 coerenza
+D 301 scomp
+B 311 Column Listing      SOLVE fix_b Using MIP From line 87
+E 314 x
+E 335 y
+E 353 z
+E 360 x1
+E 378 x2
+B 397 Range Statistics    SOLVE fix_b Using MIP From line 87
+B 408 Model Statistics    SOLVE fix_b Using MIP From line 87
+B 421 Solution Report     SOLVE fix_b Using MIP From line 87
+F 454 obiettivo_b
+F 455 utilizzo
+F 459 coerenza
+F 467 scomp
+G 475 x
+G 483 y
+G 493 z
+G 495 x1
+G 503 x2
+B 517 E x e c u t i o n
+I 517 x
+I 523 x1
+I 528 x2
+I 533 y
+I 539 z

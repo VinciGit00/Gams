@@ -1,0 +1,553 @@
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/25/22 12:44:44 Page 1
+Costi Fissi - Dati
+C o m p i l a t i o n
+
+
+   2   
+      Dati dell'esercizio 1 (Modelli 2)
+   6   
+   7  Set J insieme delle compagnie telefoniche /A*C/ ;
+   8   
+   9  Parameters
+  10   F(j) canone fisso di j
+  11  /
+  12  A 16
+  13  B 25
+  14  C 22
+  15  /
+  16   
+  17   c(j) costo variabile di j
+  18  /
+  19  A  0.25
+  20  B  0.21
+  21  C  0.22
+  22  /
+  23  ;
+  24   
+  25  Scalars
+  26   D domanda / 250 /
+  27   S soglia / 100 /
+  28  ;
+  29   
+  30  Parameters
+  31   c1(j) costo entro la soglia
+  32   c2(j) costo oltre la soglia
+  33  ;
+  34   
+  35  Variables
+  36      x(j)
+  37      y(j)
+  38      z
+  39  ;
+  40   
+  41  Positive Variable x;
+  42  Positive Variable y;
+  43   
+  44  Equations
+  45      obiettivo
+  46      utilizzo
+  47      coerenza(j)
+  48  ;
+  49   
+  50  obiettivo.. z =e= sum(j, F(j)*y(j)+c(j)*x(j));
+  51  utilizzo.. sum(j, x(j)) =e= D;
+  52  coerenza(j).. x(j) =l= D*y(j);
+  53   
+  54  Model Fix /all/;
+  55  Fix.optca = 0;
+  56  Fix.optcr = 0;
+  57  Solve Fix using MIP minimizing z;
+  58  Display x.l, y.l, z.l;
+  59   
+  60   
+  61  **Punto B
+  62  c1(j) = c(j);
+  63  *Da testo ci dicono che raddoppia dal punto precedent4
+  64  c2(j) = 2*c(j);
+  65   
+  66  Positive Variables
+  67      x1(j) utilizzo entro la soglia
+  68      x2(j) utilizzo oltre la soglia
+  69  ;
+  70   
+  71  Equations
+  72      obiettivo_b funzione obiettivo al punto b
+  73      scomp(j)    scompostizione di x(j)
+  74  ;
+  75   
+  76  x1.up(j) = S;
+  77  obiettivo_b.. z =e= sum(j, F(j)*y(j)+c1(j)+x1(j)+c2(j)*x2(j));
+  78   
+  79   
+  80  scomp(j).. x(j) =e= x1(j) +x2(j);
+  81   
+  82  Model fix_b /obiettivo_b, utilizzo, coerenza, scomp/;
+  83   
+  84  Fix_b.optca = 0;
+  85  Fix_b.optcr = 0;
+  86   
+  87  Solve fix_b using MIP minimizing z;
+  88  display x.l,x1.l, x2.l, y.l, z.l;
+
+
+COMPILATION TIME     =        0.002 SECONDS      3 MB  40.3.0 f227c22a DEX-DEG
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/25/22 12:44:44 Page 2
+Costi Fissi - Dati
+Equation Listing    SOLVE Fix Using MIP From line 57
+
+
+---- obiettivo  =E=  
+
+obiettivo..  - 0.25*x(A) - 0.21*x(B) - 0.22*x(C) - 16*y(A) - 25*y(B) - 22*y(C) + z =E= 0 ; (LHS = 0)
+     
+
+---- utilizzo  =E=  
+
+utilizzo..  x(A) + x(B) + x(C) =E= 250 ; (LHS = 0, INFES = 250 ****)
+     
+
+---- coerenza  =L=  
+
+coerenza(A)..  x(A) - 250*y(A) =L= 0 ; (LHS = 0)
+     
+coerenza(B)..  x(B) - 250*y(B) =L= 0 ; (LHS = 0)
+     
+coerenza(C)..  x(C) - 250*y(C) =L= 0 ; (LHS = 0)
+     
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/25/22 12:44:44 Page 3
+Costi Fissi - Dati
+Column Listing      SOLVE Fix Using MIP From line 57
+
+
+---- x  
+
+x(A)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.25    obiettivo
+        1       utilizzo
+        1       coerenza(A)
+
+x(B)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.21    obiettivo
+        1       utilizzo
+        1       coerenza(B)
+
+x(C)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.22    obiettivo
+        1       utilizzo
+        1       coerenza(C)
+
+
+---- y  
+
+y(A)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -16       obiettivo
+     -250       coerenza(A)
+
+y(B)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -25       obiettivo
+     -250       coerenza(B)
+
+y(C)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -22       obiettivo
+     -250       coerenza(C)
+
+
+---- z  
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obiettivo
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/25/22 12:44:44 Page 4
+Costi Fissi - Dati
+Range Statistics    SOLVE Fix Using MIP From line 57
+
+
+RANGE STATISTICS (ABSOLUTE NON-ZERO FINITE VALUES)
+
+RHS       [min, max] : [ 2.500E+02, 2.500E+02] - Zero values observed as well
+Bound     [min, max] : [        NA,        NA] - Zero values observed as well
+Matrix    [min, max] : [ 2.100E-01, 2.500E+02]
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/25/22 12:44:44 Page 5
+Costi Fissi - Dati
+Model Statistics    SOLVE Fix Using MIP From line 57
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS            5
+BLOCKS OF VARIABLES           3     SINGLE VARIABLES            7
+NON ZERO ELEMENTS            16
+
+
+GENERATION TIME      =        0.005 SECONDS      4 MB  40.3.0 f227c22a DEX-DEG
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/25/22 12:44:44 Page 6
+Costi Fissi - Dati
+Solution Report     SOLVE Fix Using MIP From line 57
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   Fix                 OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  57
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      1 Optimal
+**** OBJECTIVE VALUE               77.0000
+
+ RESOURCE USAGE, LIMIT          0.012 10000000000.000
+ ITERATION COUNT, LIMIT         0    2147483647
+--- *** This solver runs with a demo license. No commercial use.
+--- GMO setup time: 0.00s
+--- GMO memory 0.50 Mb (peak 0.50 Mb)
+--- Dictionary memory 0.00 Mb
+--- Cplex 22.1.0.0 link memory 0.00 Mb (peak 0.00 Mb)
+--- Starting Cplex
+
+
+--- LP status (1): optimal.
+--- Cplex Time: 0.00sec (det. 0.00 ticks)
+
+
+Optimal solution found
+Objective:           77.000000
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU obiettivo           .              .              .             1.0000      
+---- EQU utilizzo         250.0000       250.0000       250.0000         0.3080      
+
+---- EQU coerenza  
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+A        -INF             .              .            -0.0640      
+B        -INF             .              .            -0.1000      
+C        -INF             .              .            -0.0880      
+
+---- VAR x  
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+A          .              .            +INF            0.0060      
+B          .              .            +INF            0.0020      
+C          .           250.0000        +INF             .          
+
+---- VAR y  
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+A          .              .            +INF             .          
+B          .              .            +INF             .          
+C          .             1.0000        +INF             .          
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR z                 -INF           77.0000        +INF             .          
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/25/22 12:44:44 Page 7
+Costi Fissi - Dati
+E x e c u t i o n
+
+
+----     58 VARIABLE x.L  
+
+C 250.000
+
+
+----     58 VARIABLE y.L  
+
+C 1.000
+
+
+----     58 VARIABLE z.L                   =       77.000  
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/25/22 12:44:44 Page 8
+Costi Fissi - Dati
+Equation Listing    SOLVE fix_b Using MIP From line 87
+
+
+---- obiettivo_b  =E=  funzione obiettivo al punto b
+
+obiettivo_b..  - 16*y(A) - 25*y(B) - 22*y(C) + z - x1(A) - x1(B) - x1(C) - 0.5*x2(A) - 0.42*x2(B) - 0.44*x2(C) =E= 0.68 ; (LHS = 55, INFES = 54.32 ****)
+     
+
+---- utilizzo  =E=  
+
+utilizzo..  x(A) + x(B) + x(C) =E= 250 ; (LHS = 250)
+     
+
+---- coerenza  =L=  
+
+coerenza(A)..  x(A) - 250*y(A) =L= 0 ; (LHS = 0)
+     
+coerenza(B)..  x(B) - 250*y(B) =L= 0 ; (LHS = 0)
+     
+coerenza(C)..  x(C) - 250*y(C) =L= 0 ; (LHS = 0)
+     
+
+---- scomp  =E=  scompostizione di x(j)
+
+scomp(A)..  x(A) - x1(A) - x2(A) =E= 0 ; (LHS = 0)
+     
+scomp(B)..  x(B) - x1(B) - x2(B) =E= 0 ; (LHS = 0)
+     
+scomp(C)..  x(C) - x1(C) - x2(C) =E= 0 ; (LHS = 250, INFES = 250 ****)
+     
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/25/22 12:44:44 Page 9
+Costi Fissi - Dati
+Column Listing      SOLVE fix_b Using MIP From line 87
+
+
+---- x  
+
+x(A)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0.00600000000000001)
+        1       utilizzo
+        1       coerenza(A)
+        1       scomp(A)
+
+x(B)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0.002)
+        1       utilizzo
+        1       coerenza(B)
+        1       scomp(B)
+
+x(C)
+                (.LO, .L, .UP, .M = 0, 250, +INF, 0)
+        1       utilizzo
+        1       coerenza(C)
+        1       scomp(C)
+
+
+---- y  
+
+y(A)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -16       obiettivo_b
+     -250       coerenza(A)
+
+y(B)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+      -25       obiettivo_b
+     -250       coerenza(B)
+
+y(C)
+                (.LO, .L, .UP, .M = 0, 1, +INF, 0)
+      -22       obiettivo_b
+     -250       coerenza(C)
+
+
+---- z  
+
+z
+                (.LO, .L, .UP, .M = -INF, 77, +INF, 0)
+        1       obiettivo_b
+
+
+---- x1  utilizzo entro la soglia
+
+x1(A)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       -1       obiettivo_b
+       -1       scomp(A)
+
+x1(B)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       -1       obiettivo_b
+       -1       scomp(B)
+
+x1(C)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+       -1       obiettivo_b
+       -1       scomp(C)
+
+
+---- x2  utilizzo oltre la soglia
+
+x2(A)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.5     obiettivo_b
+       -1       scomp(A)
+
+x2(B)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.42    obiettivo_b
+       -1       scomp(B)
+
+x2(C)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+       -0.44    obiettivo_b
+       -1       scomp(C)
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/25/22 12:44:44 Page 10
+Costi Fissi - Dati
+Range Statistics    SOLVE fix_b Using MIP From line 87
+
+
+RANGE STATISTICS (ABSOLUTE NON-ZERO FINITE VALUES)
+
+RHS       [min, max] : [ 6.800E-01, 2.500E+02] - Zero values observed as well
+Bound     [min, max] : [ 1.000E+02, 1.000E+02] - Zero values observed as well
+Matrix    [min, max] : [ 4.200E-01, 2.500E+02]
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/25/22 12:44:44 Page 11
+Costi Fissi - Dati
+Model Statistics    SOLVE fix_b Using MIP From line 87
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           4     SINGLE EQUATIONS            8
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES           13
+NON ZERO ELEMENTS            28
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  40.3.0 f227c22a DEX-DEG
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/25/22 12:44:44 Page 12
+Costi Fissi - Dati
+Solution Report     SOLVE fix_b Using MIP From line 87
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   fix_b               OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  87
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      1 Optimal
+**** OBJECTIVE VALUE              130.6800
+
+ RESOURCE USAGE, LIMIT          0.012 10000000000.000
+ ITERATION COUNT, LIMIT         0    2147483647
+--- *** This solver runs with a demo license. No commercial use.
+--- GMO setup time: 0.00s
+--- GMO memory 0.50 Mb (peak 0.50 Mb)
+--- Dictionary memory 0.00 Mb
+--- Cplex 22.1.0.0 link memory 0.00 Mb (peak 0.00 Mb)
+--- Starting Cplex
+
+
+--- LP status (1): optimal.
+--- Cplex Time: 0.00sec (det. 0.01 ticks)
+
+
+Optimal solution found
+Objective:          130.680000
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU obiettivo~         0.6800         0.6800         0.6800         1.0000      
+---- EQU utilizzo         250.0000       250.0000       250.0000         0.5200      
+
+  obiettivo_b  funzione obiettivo al punto b
+
+---- EQU coerenza  
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+A        -INF             .              .            -0.0640      
+B        -INF             .              .            -0.1000      
+C        -INF             .              .            -0.0880      
+
+---- EQU scomp  scompostizione di x(j)
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+A          .              .              .            -0.5000      
+B          .              .              .            -0.4200      
+C          .              .              .            -0.4400      
+
+---- VAR x  
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+A          .              .            +INF            0.0440      
+B          .           250.0000        +INF             .          
+C          .              .            +INF            0.0080      
+
+---- VAR y  
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+A          .              .            +INF             .          
+B          .             1.0000        +INF             .          
+C          .              .            +INF             .          
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR z                 -INF          130.6800        +INF             .          
+
+---- VAR x1  utilizzo entro la soglia
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+A          .              .           100.0000         0.5000      
+B          .              .           100.0000         0.5800      
+C          .              .           100.0000         0.5600      
+
+---- VAR x2  utilizzo oltre la soglia
+
+         LOWER          LEVEL          UPPER         MARGINAL
+
+A          .              .            +INF             .          
+B          .           250.0000        +INF             .          
+C          .              .            +INF             .          
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 11/25/22 12:44:44 Page 13
+Costi Fissi - Dati
+E x e c u t i o n
+
+
+----     88 VARIABLE x.L  
+
+B 250.000
+
+
+----     88 VARIABLE x1.L  utilizzo entro la soglia
+
+                      ( ALL       0.000 )
+
+
+----     88 VARIABLE x2.L  utilizzo oltre la soglia
+
+B 250.000
+
+
+----     88 VARIABLE y.L  
+
+B 1.000
+
+
+----     88 VARIABLE z.L                   =      130.680  
+
+
+EXECUTION TIME       =        0.078 SECONDS      4 MB  40.3.0 f227c22a DEX-DEG
+
+
+USER: GAMS Demo license for marco vinciguerra        G220927|0002CO-GEN
+      unibg, Italy                                             DL074718
+
+
+**** FILE SUMMARY
+
+Input      /Users/marcovinciguerra/Github/Gams/Exe  2 es1 - Dati.gms
+Output     /Users/marcovinciguerra/Github/Gams/Exe  2 es1 - Dati.lst
