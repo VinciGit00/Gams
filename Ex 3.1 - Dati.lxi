@@ -1,0 +1,69 @@
+B 3 C o m p i l a t i o n
+B 128 Equation Listing    SOLVE Pollution Using LP From line 65
+D 131 obiettivo
+D 136 particolato
+D 141 ossidi
+D 146 idro
+B 152 Column Listing      SOLVE Pollution Using LP From line 65
+E 155 x
+E 180 z
+B 188 Range Statistics    SOLVE Pollution Using LP From line 65
+B 199 Model Statistics    SOLVE Pollution Using LP From line 65
+B 212 Solution Report     SOLVE Pollution Using LP From line 65
+F 245 obiettivo
+F 246 particolato
+F 247 ossidi
+F 248 idro
+G 255 x
+G 268 z
+B 278 E x e c u t i o n
+I 278 x
+I 288 z
+B 292 Equation Listing    SOLVE Pollution_b Using MIP From line 90
+D 295 obiettivo_b
+D 300 particolato_b
+D 305 ossidi_b
+D 310 idro_b
+B 316 Column Listing      SOLVE Pollution_b Using MIP From line 90
+E 319 x
+E 344 z
+E 351 teta
+B 362 Range Statistics    SOLVE Pollution_b Using MIP From line 90
+B 373 Model Statistics    SOLVE Pollution_b Using MIP From line 90
+B 386 Solution Report     SOLVE Pollution_b Using MIP From line 90
+F 430 obiettivo_b
+F 431 particolato_b
+F 432 ossidi_b
+F 433 idro_b
+G 437 x
+G 450 z
+G 451 teta
+B 462 E x e c u t i o n
+I 462 x
+I 472 teta
+I 473 teta_hat
+I 474 z
+B 478 Equation Listing    SOLVE Pollution_c Using MIP From line 115
+D 481 obiettivo_b
+D 486 particolato_c
+D 491 ossidi_c
+D 496 idro_c
+B 502 Column Listing      SOLVE Pollution_c Using MIP From line 115
+E 505 x
+E 530 z
+E 537 teta
+B 548 Range Statistics    SOLVE Pollution_c Using MIP From line 115
+B 559 Model Statistics    SOLVE Pollution_c Using MIP From line 115
+B 572 Solution Report     SOLVE Pollution_c Using MIP From line 115
+F 616 obiettivo_b
+F 617 particolato_c
+F 618 ossidi_c
+F 619 idro_c
+G 623 x
+G 636 z
+G 637 teta
+B 648 E x e c u t i o n
+I 648 x
+I 658 teta
+I 659 teta_hat
+I 660 z
