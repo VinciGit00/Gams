@@ -1,0 +1,1167 @@
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 12/16/22 12:41:40 Page 1
+Pianificazione Produzione - Dati
+C o m p i l a t i o n
+
+
+   2   
+      Dati dell'esercizio 3 (Modelli 3)
+   6   
+   7  Sets
+   8   I reparti /smerigliatura,
+   9              foratura_verticale,
+  10              foratura_orizzontale,
+  11              alesatura,
+  12              piallatura/
+  13   J prodotti /P1*P7/
+  14   T mesi /Gen,Feb,Mar,Apr,Mag,Giu/
+  15  ;
+  16   
+  17  Parameters
+  18   Ntot(i) numero di macchinari nel reparto i
+  19  /
+  20  smerigliatura        4
+  21  foratura_verticale   2
+  22  foratura_orizzontale 3
+  23  alesatura            1
+  24  piallatura           1
+  25  /
+  26   
+  27   P(j) profitto unitario del prodotto j
+  28  /
+  29  P1 10
+  30  P2  6
+  31  P3  8
+  32  P4  4
+  33  P5 11
+  34  P6  9
+  35  P7  3
+  36  /
+  37  ;
+  38   
+  39  Table D(t,j) domanda di j al mese t
+  40        P1   P2   P3   P4   P5   P6   P7
+  41  Gen  500  1000 300  300  800  200  100
+  42  Feb  600  500  200    0  400  300  150
+  43  Mar  300  600    0    0  500  400  100
+  44  Apr  200  300  400  500  200    0  100
+  45  Mag    0  100  500  100  1000 300    0
+  46  Giu  500  500  100  300  1100 500   60
+  47  ;
+  48   
+  49  Table tl(i,j) tempo unitario di lavorazione di j in i
+  50                         P1   P2   P3   P4   P5   P6   P7
+  51  Smerigliatura         0.5  0.7    0    0  0.3  0.2  0.5
+  52  Foratura_verticale    0.1  0.2    0  0.3    0  0.6    0
+  53  Foratura_orizzontale  0.2    0  0.8    0    0    0  0.6
+  54  Alesatura            0.05 0.03    0 0.07  0.1    0 0.08
+  55  Piallatura              0    0 0.01    0 0.05    0 0.05
+  56  ;
+  57   
+  58  Table Nman(i,t) numero di macchinari in i in manutenzione nel mese t
+  59                       Gen Feb Mar Apr Mag Giu
+  60  Smerigliatura          1   0   0   0   1   0
+  61  Foratura_verticale     0   0   0   1   1   0
+  62  Foratura_orizzontale   0   2   0   0   0   1
+  63  Alesatura              0   0   1   0   0   0
+  64  Piallatura             0   0   0   0   0   1
+  65  ;
+  66   
+  67  Scalars
+  68   S_max livello massimo del magazzino / 100 /
+  69   S0    livello iniziale del magazzino / 50 /
+  70   cs    costo di stoccaggio / 0.5 /
+  71   G     giorni lavorativi / 24 /
+  72   h     durata dei turni / 8 /
+  73   TU    turni giornalieri / 2 /
+  74  ;
+  75   
+  76   
+  77  Scalar hAP numero di ore di apertura;
+  78  hAP = G*h*TU;
+  79   
+  80  Variables
+  81  x(j,t) produzione
+  82  v(j,t) vendita
+  83  s(j,t) stoccaggio
+  84  z variabile obiettivo
+  85  ;
+  86   
+  87  Positive Variables x,v,s;
+  88   
+  89  Equations
+  90  obiettivo funzione obiettivo
+  91  bilancio(j,t) vincolo bilancio
+  92  lavorazioni(i,t) vincolo tempi lavorazione
+  93  ;
+  94   
+  95  ** Gestiscolo vincoli semplici con estensioni e non con equazioni
+  96  v.up(j,t) = D(t,j);
+  97  s.up(j,t) = S_max;
+  98  s.fx(j,'Giu') = S0;
+  99  * Oppure: (prendo ultimo mese dell'insieme dei mesi)
+ 100  *s.fx(j,t)$(ord(t)=card(t)) = S0;
+ 101   
+ 102  obiettivo.. z =e= sum((j,t), P(j)*v(j,t)) - cs*sum((j,t), s(j,t));
+ 103   
+ 104  bilancio(j,t).. x(j,t) + s(j,t-1)$(ord(t)>1) + S0$(ord(t)=1) =e= v(j,t) + s(j,t);
+ 105   
+ 106  lavorazioni(i,t).. sum(j,tl(i,j)*x(j,t)) =l= hAP*(Ntot(i)-Nman(i,t));
+ 107   
+ 108  Model Production /all/;
+ 109  Solve Production using LP maximizing z;
+ 110  Display x.l,v.l,s.l,z.l;
+ 111   
+ 112  **PUNTO B
+ 113  Integer Variables Nm(i, t) numero di macchinari di in manutenzione in i al mese t;
+ 114  Nm.up(i,t) = Ntot(i);
+ 115   
+ 116  Equations
+ 117      lavorazioni_b(i,t) Vincolo sulle lavorazioni al punto b
+ 118      Nmax(t) Massimo numero di manutenzioni
+ 119      manutenzioni(i) Vincolo sui macchinari in manutenzione nel reparto i (diverso dalla smerigliatura)
+ 120      manutenzioni_1 Macchinari in manutenzione nel reparto di smerigliatura
+ 121  ;
+ 122   
+ 123  lavorazioni_b(i,t).. sum(j,tl(i,j)*x(j,t)) =l= hAP*(Ntot(i)-Nman(i,t));
+ 124  Nmax(t).. sum(i, Nm(i,t)) =l= 3;
+ 125  manutenzioni(i)$(ord(i)>1)..  sum(t, nm(i,t)) =e= Ntot(i);
+ 126  manutenzioni_1.. sum(t, Nm('Smerigliatura', t)) =e= 2;
+ 127   
+ 128  Model Production_b /obiettivo, bilancio, lavorazioni_b, Nmax, manutenzioni, manutenzioni_1/;
+ 129   
+ 130  Production_b.optca = 0;
+ 131  Production_b.optcr = 0;
+ 132   
+ 133  Solve Production_b using MIP minimizing z;
+ 134  Display x.l,v.l,s.l,z.l;
+ 135   
+ 136   
+ 137   
+ 138   
+ 139   
+ 140   
+ 141   
+ 142   
+ 143   
+
+
+COMPILATION TIME     =        0.003 SECONDS      3 MB  40.3.0 f227c22a DEX-DEG
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 12/16/22 12:41:40 Page 2
+Pianificazione Produzione - Dati
+Equation Listing    SOLVE Production Using LP From line 109
+
+
+---- obiettivo  =E=  funzione obiettivo
+
+obiettivo..  - 10*v(P1,Gen) - 10*v(P1,Feb) - 10*v(P1,Mar) - 10*v(P1,Apr) - 10*v(P1,Mag) - 10*v(P1,Giu) - 6*v(P2,Gen) - 6*v(P2,Feb) - 6*v(P2,Mar) - 6*v(P2,Apr) - 6*v(P2,Mag) - 6*v(P2,Giu) - 8*v(P3,Gen) - 8*v(P3,Feb) - 8*v(P3,Mar) - 8*v(P3,Apr) - 8*v(P3,Mag) - 8*v(P3,Giu) - 4*v(P4,Gen) - 4*v(P4,Feb) - 4*v(P4,Mar) - 4*v(P4,Apr) - 4*v(P4,Mag) - 4*v(P4,Giu) - 11*v(P5,Gen) - 11*v(P5,Feb) - 11*v(P5,Mar) - 11*v(P5,Apr) - 11*v(P5,Mag) - 11*v(P5,Giu) - 9*v(P6,Gen) - 9*v(P6,Feb) - 9*v(P6,Mar) - 9*v(P6,Apr) - 9*v(P6,Mag) - 9*v(P6,Giu) - 3*v(P7,Gen) - 3*v(P7,Feb) - 3*v(P7,Mar) - 3*v(P7,Apr) - 3*v(P7,Mag) - 3*v(P7,Giu) + 0.5*s(P1,Gen) + 0.5*s(P1,Feb) + 0.5*s(P1,Mar) + 0.5*s(P1,Apr) + 0.5*s(P1,Mag) + 0.5*s(P1,Giu) + 0.5*s(P2,Gen) + 0.5*s(P2,Feb) + 0.5*s(P2,Mar) + 0.5*s(P2,Apr) + 0.5*s(P2,Mag) + 0.5*s(P2,Giu) + 0.5*s(P3,Gen) + 0.5*s(P3,Feb) + 0.5*s(P3,Mar) + 0.5*s(P3,Apr) + 0.5*s(P3,Mag) + 0.5*s(P3,Giu) + 0.5*s(P4,Gen) + 0.5*s(P4,Feb) + 0.5*s(P4,Mar) + 0.5*s(P4,Apr) + 0.5*s(P4,Mag) + 0.5*s(P4,Giu) + 0.5*s(P5,Gen) + 0.5*s(P5,Feb) + 0.5*s(P5,Mar) + 0.5*s(P5,Apr) + 0.5*s(P5,Mag) + 0.5*s(P5,Giu) + 0.5*s(P6,Gen) + 0.5*s(P6,Feb) + 0.5*s(P6,Mar) + 0.5*s(P6,Apr) + 0.5*s(P6,Mag) + 0.5*s(P6,Giu) + 0.5*s(P7,Gen) + 0.5*s(P7,Feb) + 0.5*s(P7,Mar) + 0.5*s(P7,Apr) + 0.5*s(P7,Mag) + 0.5*s(P7,Giu) + z =E= 0 ; (LHS = 175, INFES = 175 ****)
+     
+
+---- bilancio  =E=  vincolo bilancio
+
+bilancio(P1,Gen)..  x(P1,Gen) - v(P1,Gen) - s(P1,Gen) =E= -50 ; (LHS = 0, INFES = 50 ****)
+     
+bilancio(P1,Feb)..  x(P1,Feb) - v(P1,Feb) + s(P1,Gen) - s(P1,Feb) =E= 0 ; (LHS = 0)
+     
+bilancio(P1,Mar)..  x(P1,Mar) - v(P1,Mar) + s(P1,Feb) - s(P1,Mar) =E= 0 ; (LHS = 0)
+     
+REMAINING 39 ENTRIES SKIPPED
+
+
+---- lavorazioni  =L=  vincolo tempi lavorazione
+
+lavorazioni(smerigliatura,Gen)..  0.5*x(P1,Gen) + 0.7*x(P2,Gen) + 0.3*x(P5,Gen) + 0.2*x(P6,Gen) + 0.5*x(P7,Gen) =L= 1152 ; (LHS = 0)
+     
+lavorazioni(smerigliatura,Feb)..  0.5*x(P1,Feb) + 0.7*x(P2,Feb) + 0.3*x(P5,Feb) + 0.2*x(P6,Feb) + 0.5*x(P7,Feb) =L= 1536 ; (LHS = 0)
+     
+lavorazioni(smerigliatura,Mar)..  0.5*x(P1,Mar) + 0.7*x(P2,Mar) + 0.3*x(P5,Mar) + 0.2*x(P6,Mar) + 0.5*x(P7,Mar) =L= 1536 ; (LHS = 0)
+     
+REMAINING 27 ENTRIES SKIPPED
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 12/16/22 12:41:40 Page 3
+Pianificazione Produzione - Dati
+Column Listing      SOLVE Production Using LP From line 109
+
+
+---- x  produzione
+
+x(P1,Gen)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       bilancio(P1,Gen)
+        0.5     lavorazioni(smerigliatura,Gen)
+        0.1     lavorazioni(foratura_verticale,Gen)
+        0.2     lavorazioni(foratura_orizzontale,Gen)
+        0.05    lavorazioni(alesatura,Gen)
+
+x(P1,Feb)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       bilancio(P1,Feb)
+        0.5     lavorazioni(smerigliatura,Feb)
+        0.1     lavorazioni(foratura_verticale,Feb)
+        0.2     lavorazioni(foratura_orizzontale,Feb)
+        0.05    lavorazioni(alesatura,Feb)
+
+x(P1,Mar)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       bilancio(P1,Mar)
+        0.5     lavorazioni(smerigliatura,Mar)
+        0.1     lavorazioni(foratura_verticale,Mar)
+        0.2     lavorazioni(foratura_orizzontale,Mar)
+        0.05    lavorazioni(alesatura,Mar)
+
+REMAINING 39 ENTRIES SKIPPED
+
+---- v  vendita
+
+v(P1,Gen)
+                (.LO, .L, .UP, .M = 0, 0, 500, 0)
+      -10       obiettivo
+       -1       bilancio(P1,Gen)
+
+v(P1,Feb)
+                (.LO, .L, .UP, .M = 0, 0, 600, 0)
+      -10       obiettivo
+       -1       bilancio(P1,Feb)
+
+v(P1,Mar)
+                (.LO, .L, .UP, .M = 0, 0, 300, 0)
+      -10       obiettivo
+       -1       bilancio(P1,Mar)
+
+REMAINING 39 ENTRIES SKIPPED
+
+---- s  stoccaggio
+
+s(P1,Gen)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+        0.5     obiettivo
+       -1       bilancio(P1,Gen)
+        1       bilancio(P1,Feb)
+
+s(P1,Feb)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+        0.5     obiettivo
+       -1       bilancio(P1,Feb)
+        1       bilancio(P1,Mar)
+
+s(P1,Mar)
+                (.LO, .L, .UP, .M = 0, 0, 100, 0)
+        0.5     obiettivo
+       -1       bilancio(P1,Mar)
+        1       bilancio(P1,Apr)
+
+REMAINING 39 ENTRIES SKIPPED
+
+---- z  variabile obiettivo
+
+z
+                (.LO, .L, .UP, .M = -INF, 0, +INF, 0)
+        1       obiettivo
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 12/16/22 12:41:40 Page 4
+Pianificazione Produzione - Dati
+Range Statistics    SOLVE Production Using LP From line 109
+
+
+RANGE STATISTICS (ABSOLUTE NON-ZERO FINITE VALUES)
+
+RHS       [min, max] : [ 5.000E+01, 1.536E+03] - Zero values observed as well
+Bound     [min, max] : [ 5.000E+01, 1.100E+03] - Zero values observed as well
+Matrix    [min, max] : [ 1.000E-02, 1.100E+01]
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 12/16/22 12:41:40 Page 5
+Pianificazione Produzione - Dati
+Model Statistics    SOLVE Production Using LP From line 109
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           3     SINGLE EQUATIONS           73
+BLOCKS OF VARIABLES           4     SINGLE VARIABLES          127
+NON ZERO ELEMENTS           366
+
+
+GENERATION TIME      =        0.006 SECONDS      4 MB  40.3.0 f227c22a DEX-DEG
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 12/16/22 12:41:40 Page 6
+Pianificazione Produzione - Dati
+Solution Report     SOLVE Production Using LP From line 109
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   Production          OBJECTIVE  z
+     TYPE    LP                  DIRECTION  MAXIMIZE
+     SOLVER  CPLEX               FROM LINE  109
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      1 Optimal
+**** OBJECTIVE VALUE            94575.7500
+
+ RESOURCE USAGE, LIMIT          0.013 10000000000.000
+ ITERATION COUNT, LIMIT         2    2147483647
+--- *** This solver runs with a demo license. No commercial use.
+--- GMO setup time: 0.00s
+--- GMO memory 0.52 Mb (peak 0.52 Mb)
+--- Dictionary memory 0.00 Mb
+--- Cplex 22.1.0.0 link memory 0.00 Mb (peak 0.01 Mb)
+--- Starting Cplex
+
+
+--- LP status (1): optimal.
+--- Cplex Time: 0.00sec (det. 0.12 ticks)
+
+
+Optimal solution found
+Objective:        94575.750000
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU obiettivo           .              .              .             1.0000      
+
+  obiettivo  funzione obiettivo
+
+---- EQU bilancio  vincolo bilancio
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+P1.Gen       -50.0000       -50.0000       -50.0000        -3.0000      
+P1.Feb          .              .              .            -0.1250      
+P1.Mar          .              .              .           -10.0000      
+P1.Apr          .              .              .             EPS         
+P1.Mag          .              .              .             EPS         
+P1.Giu          .              .              .             EPS         
+P2.Gen       -50.0000       -50.0000       -50.0000        -4.2000      
+P2.Feb          .              .              .             EPS         
+P2.Mar          .              .              .            -6.0000      
+P2.Apr          .              .              .             EPS         
+P2.Mag          .              .              .             EPS         
+P2.Giu          .              .              .             EPS         
+P3.Gen       -50.0000       -50.0000       -50.0000         EPS         
+P3.Feb          .              .              .            -0.5000      
+P3.Mar          .              .              .             0.5000      
+P3.Apr          .              .              .             EPS         
+P3.Mag          .              .              .             EPS         
+P3.Giu          .              .              .            -8.0000      
+P4.Gen       -50.0000       -50.0000       -50.0000         EPS         
+P4.Feb          .              .              .             1.0000      
+P4.Mar          .              .              .             0.5000      
+P4.Apr          .              .              .             EPS         
+P4.Mag          .              .              .             EPS         
+P4.Giu          .              .              .             EPS         
+P5.Gen       -50.0000       -50.0000       -50.0000        -1.8000      
+P5.Feb          .              .              .             EPS         
+P5.Mar          .              .              .           -11.0000      
+P5.Apr          .              .              .             EPS         
+P5.Mag          .              .              .             EPS         
+P5.Giu          .              .              .           -11.0000      
+P6.Gen       -50.0000       -50.0000       -50.0000        -1.2000      
+P6.Feb          .              .              .             EPS         
+P6.Mar          .              .              .             EPS         
+P6.Apr          .              .              .             0.5000      
+P6.Mag          .              .              .             EPS         
+P6.Giu          .              .              .             EPS         
+P7.Gen       -50.0000       -50.0000       -50.0000        -3.0000      
+P7.Feb          .              .              .            -0.3750      
+P7.Mar          .              .              .            -3.0000      
+P7.Apr          .              .              .             EPS         
+P7.Mag          .              .              .             EPS         
+P7.Giu          .              .              .            -3.0000      
+
+---- EQU lavorazioni  vincolo tempi lavorazione
+
+                                LOWER          LEVEL          UPPER         MARGINAL
+
+smerigliatura       .Gen        -INF         1152.0000      1152.0000         6.0000      
+smerigliatura       .Feb        -INF         1105.0000      1536.0000          .          
+smerigliatura       .Mar        -INF           80.0000      1536.0000          .          
+smerigliatura       .Apr        -INF          420.0000      1536.0000          .          
+smerigliatura       .Mag        -INF          510.0000      1152.0000          .          
+smerigliatura       .Giu        -INF          770.0000      1536.0000          .          
+foratura_verticale  .Gen        -INF          400.0000       768.0000          .          
+foratura_verticale  .Feb        -INF          370.0000       768.0000          .          
+foratura_verticale  .Mar        -INF          240.0000       768.0000          .          
+foratura_verticale  .Apr        -INF          230.0000       384.0000          .          
+foratura_verticale  .Mag        -INF          230.0000       384.0000          .          
+foratura_verticale  .Giu        -INF          600.0000       768.0000          .          
+foratura_orizzontale.Gen        -INF          364.4000      1152.0000          .          
+foratura_orizzontale.Feb        -INF          384.0000       384.0000         0.6250      
+foratura_orizzontale.Mar        -INF             .          1152.0000          .          
+foratura_orizzontale.Apr        -INF          420.0000      1152.0000          .          
+foratura_orizzontale.Mag        -INF          540.0000      1152.0000          .          
+foratura_orizzontale.Giu        -INF          110.0000       768.0000          .          
+alesatura           .Gen        -INF          144.6200       384.0000          .          
+alesatura           .Feb        -INF          123.0000       384.0000          .          
+alesatura           .Mar        -INF             .              .           200.0000      
+alesatura           .Apr        -INF           82.0000       384.0000          .          
+alesatura           .Mag        -INF          128.0000       384.0000          .          
+alesatura           .Giu        -INF           68.5000       384.0000          .          
+piallatura          .Gen        -INF           41.5250       384.0000          .          
+piallatura          .Feb        -INF           38.6750       384.0000          .          
+piallatura          .Mar        -INF             .           384.0000          .          
+piallatura          .Apr        -INF           19.0000       384.0000          .          
+piallatura          .Mag        -INF           66.0000       384.0000          .          
+piallatura          .Giu        -INF             .              .           800.0000      
+
+---- VAR x  produzione
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+P1.Gen          .           450.0000        +INF             .          
+P1.Feb          .           700.0000        +INF             .          
+P1.Mar          .              .            +INF             .          
+P1.Apr          .           200.0000        +INF             .          
+P1.Mag          .              .            +INF             .          
+P1.Giu          .           550.0000        +INF             .          
+P2.Gen          .           950.0000        +INF             .          
+P2.Feb          .           600.0000        +INF             .          
+P2.Mar          .              .            +INF            EPS         
+P2.Apr          .           300.0000        +INF             .          
+P2.Mag          .           100.0000        +INF             .          
+P2.Giu          .           550.0000        +INF             .          
+P3.Gen          .           332.5000        +INF             .          
+P3.Feb          .           117.5000        +INF             .          
+P3.Mar          .              .            +INF           -0.5000      
+P3.Apr          .           400.0000        +INF             .          
+P3.Mag          .           600.0000        +INF             .          
+P3.Giu          .              .            +INF             .          
+P4.Gen          .           250.0000        +INF             .          
+P4.Feb          .              .            +INF           -1.0000      
+P4.Mar          .              .            +INF          -14.5000      
+P4.Apr          .           500.0000        +INF             .          
+P4.Mag          .           100.0000        +INF             .          
+P4.Giu          .           350.0000        +INF             .          
+P5.Gen          .           750.0000        +INF             .          
+P5.Feb          .           500.0000        +INF             .          
+P5.Mar          .              .            +INF           -9.0000      
+P5.Apr          .           200.0000        +INF             .          
+P5.Mag          .          1100.0000        +INF             .          
+P5.Giu          .              .            +INF          -29.0000      
+P6.Gen          .           150.0000        +INF             .          
+P6.Feb          .           300.0000        +INF             .          
+P6.Mar          .           400.0000        +INF             .          
+P6.Apr          .              .            +INF           -0.5000      
+P6.Mag          .           300.0000        +INF             .          
+P6.Giu          .           550.0000        +INF             .          
+P7.Gen          .            14.0000        +INF             .          
+P7.Feb          .           250.0000        +INF             .          
+P7.Mar          .              .            +INF          -13.0000      
+P7.Apr          .           100.0000        +INF             .          
+P7.Mag          .           100.0000        +INF             .          
+P7.Giu          .              .            +INF          -37.0000      
+
+---- VAR v  vendita
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+P1.Gen          .           500.0000       500.0000         7.0000      
+P1.Feb          .           600.0000       600.0000         9.8750      
+P1.Mar          .           100.0000       300.0000          .          
+P1.Apr          .           200.0000       200.0000        10.0000      
+P1.Mag          .              .              .            10.0000      
+P1.Giu          .           500.0000       500.0000        10.0000      
+P2.Gen          .          1000.0000      1000.0000         1.8000      
+P2.Feb          .           500.0000       500.0000         6.0000      
+P2.Mar          .           100.0000       600.0000          .          
+P2.Apr          .           300.0000       300.0000         6.0000      
+P2.Mag          .           100.0000       100.0000         6.0000      
+P2.Giu          .           500.0000       500.0000         6.0000      
+P3.Gen          .           300.0000       300.0000         8.0000      
+P3.Feb          .           200.0000       200.0000         7.5000      
+P3.Mar          .              .              .             8.5000      
+P3.Apr          .           400.0000       400.0000         8.0000      
+P3.Mag          .           500.0000       500.0000         8.0000      
+P3.Giu          .            50.0000       100.0000          .          
+P4.Gen          .           300.0000       300.0000         4.0000      
+P4.Feb          .              .              .             5.0000      
+P4.Mar          .              .              .             4.5000      
+P4.Apr          .           500.0000       500.0000         4.0000      
+P4.Mag          .           100.0000       100.0000         4.0000      
+P4.Giu          .           300.0000       300.0000         4.0000      
+P5.Gen          .           800.0000       800.0000         9.2000      
+P5.Feb          .           400.0000       400.0000        11.0000      
+P5.Mar          .           100.0000       500.0000          .          
+P5.Apr          .           200.0000       200.0000        11.0000      
+P5.Mag          .          1000.0000      1000.0000        11.0000      
+P5.Giu          .            50.0000      1100.0000          .          
+P6.Gen          .           200.0000       200.0000         7.8000      
+P6.Feb          .           300.0000       300.0000         9.0000      
+P6.Mar          .           400.0000       400.0000         9.0000      
+P6.Apr          .              .              .             9.5000      
+P6.Mag          .           300.0000       300.0000         9.0000      
+P6.Giu          .           500.0000       500.0000         9.0000      
+P7.Gen          .            64.0000       100.0000          .          
+P7.Feb          .           150.0000       150.0000         2.6250      
+P7.Mar          .           100.0000       100.0000          .          
+P7.Apr          .           100.0000       100.0000         3.0000      
+P7.Mag          .              .              .             3.0000      
+P7.Giu          .            50.0000        60.0000          .          
+
+---- VAR s  stoccaggio
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+P1.Gen          .              .           100.0000        -3.3750      
+P1.Feb          .           100.0000       100.0000         9.3750      
+P1.Mar          .              .           100.0000       -10.5000      
+P1.Apr          .              .           100.0000        -0.5000      
+P1.Mag          .              .           100.0000        -0.5000      
+P1.Giu        50.0000        50.0000        50.0000        -0.5000      
+P2.Gen          .              .           100.0000        -4.7000      
+P2.Feb          .           100.0000       100.0000         5.5000      
+P2.Mar          .              .           100.0000        -6.5000      
+P2.Apr          .              .           100.0000        -0.5000      
+P2.Mag          .              .           100.0000        -0.5000      
+P2.Giu        50.0000        50.0000        50.0000        -0.5000      
+P3.Gen          .            82.5000       100.0000          .          
+P3.Feb          .              .           100.0000        -1.5000      
+P3.Mar          .              .           100.0000          .          
+P3.Apr          .              .           100.0000        -0.5000      
+P3.Mag          .           100.0000       100.0000         7.5000      
+P3.Giu        50.0000        50.0000        50.0000        -8.5000      
+P4.Gen          .              .           100.0000        -1.5000      
+P4.Feb          .              .           100.0000          .          
+P4.Mar          .              .           100.0000          .          
+P4.Apr          .              .           100.0000        -0.5000      
+P4.Mag          .              .           100.0000        -0.5000      
+P4.Giu        50.0000        50.0000        50.0000        -0.5000      
+P5.Gen          .              .           100.0000        -2.3000      
+P5.Feb          .           100.0000       100.0000        10.5000      
+P5.Mar          .              .           100.0000       -11.5000      
+P5.Apr          .              .           100.0000        -0.5000      
+P5.Mag          .           100.0000       100.0000        10.5000      
+P5.Giu        50.0000        50.0000        50.0000       -11.5000      
+P6.Gen          .              .           100.0000        -1.7000      
+P6.Feb          .              .           100.0000        -0.5000      
+P6.Mar          .              .           100.0000        -1.0000      
+P6.Apr          .              .           100.0000          .          
+P6.Mag          .              .           100.0000        -0.5000      
+P6.Giu        50.0000        50.0000        50.0000        -0.5000      
+P7.Gen          .              .           100.0000        -3.1250      
+P7.Feb          .           100.0000       100.0000         2.1250      
+P7.Mar          .              .           100.0000        -3.5000      
+P7.Apr          .              .           100.0000        -0.5000      
+P7.Mag          .           100.0000       100.0000         2.5000      
+P7.Giu        50.0000        50.0000        50.0000        -3.5000      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR z                 -INF        94575.7500        +INF             .          
+
+  z  variabile obiettivo
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 12/16/22 12:41:40 Page 7
+Pianificazione Produzione - Dati
+E x e c u t i o n
+
+
+----    110 VARIABLE x.L  produzione
+
+           Gen         Feb         Mar         Apr         Mag         Giu
+
+P1     450.000     700.000                 200.000                 550.000
+P2     950.000     600.000                 300.000     100.000     550.000
+P3     332.500     117.500                 400.000     600.000
+P4     250.000                             500.000     100.000     350.000
+P5     750.000     500.000                 200.000    1100.000
+P6     150.000     300.000     400.000                 300.000     550.000
+P7      14.000     250.000                 100.000     100.000
+
+
+----    110 VARIABLE v.L  vendita
+
+           Gen         Feb         Mar         Apr         Mag         Giu
+
+P1     500.000     600.000     100.000     200.000                 500.000
+P2    1000.000     500.000     100.000     300.000     100.000     500.000
+P3     300.000     200.000                 400.000     500.000      50.000
+P4     300.000                             500.000     100.000     300.000
+P5     800.000     400.000     100.000     200.000    1000.000      50.000
+P6     200.000     300.000     400.000                 300.000     500.000
+P7      64.000     150.000     100.000     100.000                  50.000
+
+
+----    110 VARIABLE s.L  stoccaggio
+
+           Gen         Feb         Mag         Giu
+
+P1                 100.000                  50.000
+P2                 100.000                  50.000
+P3      82.500                 100.000      50.000
+P4                                          50.000
+P5                 100.000     100.000      50.000
+P6                                          50.000
+P7                 100.000     100.000      50.000
+
+
+----    110 VARIABLE z.L                   =    94575.750  variabile obiettivo
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 12/16/22 12:41:40 Page 8
+Pianificazione Produzione - Dati
+Equation Listing    SOLVE Production_b Using MIP From line 133
+
+
+---- obiettivo  =E=  funzione obiettivo
+
+obiettivo..  - 10*v(P1,Gen) - 10*v(P1,Feb) - 10*v(P1,Mar) - 10*v(P1,Apr) - 10*v(P1,Mag) - 10*v(P1,Giu) - 6*v(P2,Gen) - 6*v(P2,Feb) - 6*v(P2,Mar) - 6*v(P2,Apr) - 6*v(P2,Mag) - 6*v(P2,Giu) - 8*v(P3,Gen) - 8*v(P3,Feb) - 8*v(P3,Mar) - 8*v(P3,Apr) - 8*v(P3,Mag) - 8*v(P3,Giu) - 4*v(P4,Gen) - 4*v(P4,Feb) - 4*v(P4,Mar) - 4*v(P4,Apr) - 4*v(P4,Mag) - 4*v(P4,Giu) - 11*v(P5,Gen) - 11*v(P5,Feb) - 11*v(P5,Mar) - 11*v(P5,Apr) - 11*v(P5,Mag) - 11*v(P5,Giu) - 9*v(P6,Gen) - 9*v(P6,Feb) - 9*v(P6,Mar) - 9*v(P6,Apr) - 9*v(P6,Mag) - 9*v(P6,Giu) - 3*v(P7,Gen) - 3*v(P7,Feb) - 3*v(P7,Mar) - 3*v(P7,Apr) - 3*v(P7,Mag) - 3*v(P7,Giu) + 0.5*s(P1,Gen) + 0.5*s(P1,Feb) + 0.5*s(P1,Mar) + 0.5*s(P1,Apr) + 0.5*s(P1,Mag) + 0.5*s(P1,Giu) + 0.5*s(P2,Gen) + 0.5*s(P2,Feb) + 0.5*s(P2,Mar) + 0.5*s(P2,Apr) + 0.5*s(P2,Mag) + 0.5*s(P2,Giu) + 0.5*s(P3,Gen) + 0.5*s(P3,Feb) + 0.5*s(P3,Mar) + 0.5*s(P3,Apr) + 0.5*s(P3,Mag) + 0.5*s(P3,Giu) + 0.5*s(P4,Gen) + 0.5*s(P4,Feb) + 0.5*s(P4,Mar) + 0.5*s(P4,Apr) + 0.5*s(P4,Mag) + 0.5*s(P4,Giu) + 0.5*s(P5,Gen) + 0.5*s(P5,Feb) + 0.5*s(P5,Mar) + 0.5*s(P5,Apr) + 0.5*s(P5,Mag) + 0.5*s(P5,Giu) + 0.5*s(P6,Gen) + 0.5*s(P6,Feb) + 0.5*s(P6,Mar) + 0.5*s(P6,Apr) + 0.5*s(P6,Mag) + 0.5*s(P6,Giu) + 0.5*s(P7,Gen) + 0.5*s(P7,Feb) + 0.5*s(P7,Mar) + 0.5*s(P7,Apr) + 0.5*s(P7,Mag) + 0.5*s(P7,Giu) + z =E= 0 ; (LHS = 0)
+     
+
+---- bilancio  =E=  vincolo bilancio
+
+bilancio(P1,Gen)..  x(P1,Gen) - v(P1,Gen) - s(P1,Gen) =E= -50 ; (LHS = -50)
+     
+bilancio(P1,Feb)..  x(P1,Feb) - v(P1,Feb) + s(P1,Gen) - s(P1,Feb) =E= 0 ; (LHS = 0)
+     
+bilancio(P1,Mar)..  x(P1,Mar) - v(P1,Mar) + s(P1,Feb) - s(P1,Mar) =E= 0 ; (LHS = 0)
+     
+REMAINING 39 ENTRIES SKIPPED
+
+
+---- lavorazioni_b  =L=  Vincolo sulle lavorazioni al punto b
+
+lavorazioni_b(smerigliatura,Gen)..  0.5*x(P1,Gen) + 0.7*x(P2,Gen) + 0.3*x(P5,Gen) + 0.2*x(P6,Gen) + 0.5*x(P7,Gen) =L= 1152 ; (LHS = 1152)
+     
+lavorazioni_b(smerigliatura,Feb)..  0.5*x(P1,Feb) + 0.7*x(P2,Feb) + 0.3*x(P5,Feb) + 0.2*x(P6,Feb) + 0.5*x(P7,Feb) =L= 1536 ; (LHS = 1105)
+     
+lavorazioni_b(smerigliatura,Mar)..  0.5*x(P1,Mar) + 0.7*x(P2,Mar) + 0.3*x(P5,Mar) + 0.2*x(P6,Mar) + 0.5*x(P7,Mar) =L= 1536 ; (LHS = 80)
+     
+REMAINING 27 ENTRIES SKIPPED
+
+
+---- Nmax  =L=  Massimo numero di manutenzioni
+
+Nmax(Gen)..  Nm(smerigliatura,Gen) + Nm(foratura_verticale,Gen) + Nm(foratura_orizzontale,Gen) + Nm(alesatura,Gen) + Nm(piallatura,Gen) =L= 3 ; (LHS = 0)
+     
+Nmax(Feb)..  Nm(smerigliatura,Feb) + Nm(foratura_verticale,Feb) + Nm(foratura_orizzontale,Feb) + Nm(alesatura,Feb) + Nm(piallatura,Feb) =L= 3 ; (LHS = 0)
+     
+Nmax(Mar)..  Nm(smerigliatura,Mar) + Nm(foratura_verticale,Mar) + Nm(foratura_orizzontale,Mar) + Nm(alesatura,Mar) + Nm(piallatura,Mar) =L= 3 ; (LHS = 0)
+     
+REMAINING 3 ENTRIES SKIPPED
+
+
+---- manutenzioni  =E=  Vincolo sui macchinari in manutenzione nel reparto i (diverso dalla smerigliatura)
+
+manutenzioni(foratura_verticale)..  Nm(foratura_verticale,Gen) + Nm(foratura_verticale,Feb) + Nm(foratura_verticale,Mar) + Nm(foratura_verticale,Apr) + Nm(foratura_verticale,Mag) + Nm(foratura_verticale,Giu) =E= 2 ; (LHS = 0, INFES = 2 ****)
+     
+manutenzioni(foratura_orizzontale)..  Nm(foratura_orizzontale,Gen) + Nm(foratura_orizzontale,Feb) + Nm(foratura_orizzontale,Mar) + Nm(foratura_orizzontale,Apr) + Nm(foratura_orizzontale,Mag) + Nm(foratura_orizzontale,Giu) =E= 3 ; (LHS = 0, INFES = 3 ****)
+     
+manutenzioni(alesatura)..  Nm(alesatura,Gen) + Nm(alesatura,Feb) + Nm(alesatura,Mar) + Nm(alesatura,Apr) + Nm(alesatura,Mag) + Nm(alesatura,Giu) =E= 1 ; (LHS = 0, INFES = 1 ****)
+     
+REMAINING ENTRY SKIPPED
+
+
+---- manutenzioni_1  =E=  Macchinari in manutenzione nel reparto di smerigliatura
+
+manutenzioni_1..  Nm(smerigliatura,Gen) + Nm(smerigliatura,Feb) + Nm(smerigliatura,Mar) + Nm(smerigliatura,Apr) + Nm(smerigliatura,Mag) + Nm(smerigliatura,Giu) =E= 2 ; (LHS = 0, INFES = 2 ****)
+     
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 12/16/22 12:41:40 Page 9
+Pianificazione Produzione - Dati
+Column Listing      SOLVE Production_b Using MIP From line 133
+
+
+---- x  produzione
+
+x(P1,Gen)
+                (.LO, .L, .UP, .M = 0, 450, +INF, 0)
+        1       bilancio(P1,Gen)
+        0.5     lavorazioni_b(smerigliatura,Gen)
+        0.1     lavorazioni_b(foratura_verticale,Gen)
+        0.2     lavorazioni_b(foratura_orizzontale,Gen)
+        0.05    lavorazioni_b(alesatura,Gen)
+
+x(P1,Feb)
+                (.LO, .L, .UP, .M = 0, 700, +INF, 0)
+        1       bilancio(P1,Feb)
+        0.5     lavorazioni_b(smerigliatura,Feb)
+        0.1     lavorazioni_b(foratura_verticale,Feb)
+        0.2     lavorazioni_b(foratura_orizzontale,Feb)
+        0.05    lavorazioni_b(alesatura,Feb)
+
+x(P1,Mar)
+                (.LO, .L, .UP, .M = 0, 0, +INF, 0)
+        1       bilancio(P1,Mar)
+        0.5     lavorazioni_b(smerigliatura,Mar)
+        0.1     lavorazioni_b(foratura_verticale,Mar)
+        0.2     lavorazioni_b(foratura_orizzontale,Mar)
+        0.05    lavorazioni_b(alesatura,Mar)
+
+REMAINING 39 ENTRIES SKIPPED
+
+---- v  vendita
+
+v(P1,Gen)
+                (.LO, .L, .UP, .M = 0, 500, 500, 7)
+      -10       obiettivo
+       -1       bilancio(P1,Gen)
+
+v(P1,Feb)
+                (.LO, .L, .UP, .M = 0, 600, 600, 9.875)
+      -10       obiettivo
+       -1       bilancio(P1,Feb)
+
+v(P1,Mar)
+                (.LO, .L, .UP, .M = 0, 100, 300, 0)
+      -10       obiettivo
+       -1       bilancio(P1,Mar)
+
+REMAINING 39 ENTRIES SKIPPED
+
+---- s  stoccaggio
+
+s(P1,Gen)
+                (.LO, .L, .UP, .M = 0, 0, 100, -3.375)
+        0.5     obiettivo
+       -1       bilancio(P1,Gen)
+        1       bilancio(P1,Feb)
+
+s(P1,Feb)
+                (.LO, .L, .UP, .M = 0, 100, 100, 9.375)
+        0.5     obiettivo
+       -1       bilancio(P1,Feb)
+        1       bilancio(P1,Mar)
+
+s(P1,Mar)
+                (.LO, .L, .UP, .M = 0, 0, 100, -10.5)
+        0.5     obiettivo
+       -1       bilancio(P1,Mar)
+        1       bilancio(P1,Apr)
+
+REMAINING 39 ENTRIES SKIPPED
+
+---- z  variabile obiettivo
+
+z
+                (.LO, .L, .UP, .M = -INF, 94575.75, +INF, 0)
+        1       obiettivo
+
+
+---- Nm  numero di macchinari di in manutenzione in i al mese t
+
+Nm(smerigliatura,Gen)
+                (.LO, .L, .UP, .M = 0, 0, 4, 0)
+        1       Nmax(Gen)
+        1       manutenzioni_1
+
+Nm(smerigliatura,Feb)
+                (.LO, .L, .UP, .M = 0, 0, 4, 0)
+        1       Nmax(Feb)
+        1       manutenzioni_1
+
+Nm(smerigliatura,Mar)
+                (.LO, .L, .UP, .M = 0, 0, 4, 0)
+        1       Nmax(Mar)
+        1       manutenzioni_1
+
+REMAINING 27 ENTRIES SKIPPED
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 12/16/22 12:41:40 Page 10
+Pianificazione Produzione - Dati
+Range Statistics    SOLVE Production_b Using MIP From line 133
+
+
+RANGE STATISTICS (ABSOLUTE NON-ZERO FINITE VALUES)
+
+RHS       [min, max] : [ 1.000E+00, 1.536E+03] - Zero values observed as well
+Bound     [min, max] : [ 1.000E+00, 1.100E+03] - Zero values observed as well
+Matrix    [min, max] : [ 1.000E-02, 1.100E+01]
+
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 12/16/22 12:41:40 Page 11
+Pianificazione Produzione - Dati
+Model Statistics    SOLVE Production_b Using MIP From line 133
+
+
+MODEL STATISTICS
+
+BLOCKS OF EQUATIONS           6     SINGLE EQUATIONS           84
+BLOCKS OF VARIABLES           5     SINGLE VARIABLES          157
+NON ZERO ELEMENTS           426     DISCRETE VARIABLES         30
+
+
+GENERATION TIME      =        0.002 SECONDS      4 MB  40.3.0 f227c22a DEX-DEG
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 12/16/22 12:41:40 Page 12
+Pianificazione Produzione - Dati
+Solution Report     SOLVE Production_b Using MIP From line 133
+
+
+               S O L V E      S U M M A R Y
+
+     MODEL   Production_b        OBJECTIVE  z
+     TYPE    MIP                 DIRECTION  MINIMIZE
+     SOLVER  CPLEX               FROM LINE  133
+
+**** SOLVER STATUS     1 Normal Completion
+**** MODEL STATUS      1 Optimal
+**** OBJECTIVE VALUE            -1050.0000
+
+ RESOURCE USAGE, LIMIT          0.030 10000000000.000
+ ITERATION COUNT, LIMIT        27    2147483647
+--- *** This solver runs with a demo license. No commercial use.
+--- GMO setup time: 0.00s
+--- GMO memory 0.53 Mb (peak 0.53 Mb)
+--- Dictionary memory 0.00 Mb
+--- Cplex 22.1.0.0 link memory 0.00 Mb (peak 0.02 Mb)
+--- Starting Cplex
+
+
+--- MIP status (101): integer optimal solution.
+--- Cplex Time: 0.02sec (det. 2.61 ticks)
+
+--- Fixing integer variables and solving final LP...
+
+
+--- Fixed MIP status (1): optimal.
+--- Cplex Time: 0.00sec (det. 0.21 ticks)
+
+
+Proven optimal solution
+MIP Solution:        -1050.000000    (27 iterations, 0 nodes)
+Final Solve:         -1050.000000    (31 iterations)
+
+Best possible:       -1050.000000
+Absolute gap:            0.000000
+Relative gap:            0.000000
+
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU obiettivo           .              .              .             1.0000      
+
+  obiettivo  funzione obiettivo
+
+---- EQU bilancio  vincolo bilancio
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+P1.Gen       -50.0000       -50.0000       -50.0000         EPS         
+P1.Feb          .              .              .            -0.5000      
+P1.Mar          .              .              .            -1.0000      
+P1.Apr          .              .              .            -1.5000      
+P1.Mag          .              .              .            -2.0000      
+P1.Giu          .              .              .            -2.5000      
+P2.Gen       -50.0000       -50.0000       -50.0000         EPS         
+P2.Feb          .              .              .            -0.5000      
+P2.Mar          .              .              .            -1.0000      
+P2.Apr          .              .              .            -1.5000      
+P2.Mag          .              .              .            -2.0000      
+P2.Giu          .              .              .            -2.5000      
+P3.Gen       -50.0000       -50.0000       -50.0000         EPS         
+P3.Feb          .              .              .            -0.5000      
+P3.Mar          .              .              .            -1.0000      
+P3.Apr          .              .              .            -1.5000      
+P3.Mag          .              .              .            -2.0000      
+P3.Giu          .              .              .            -2.5000      
+P4.Gen       -50.0000       -50.0000       -50.0000         EPS         
+P4.Feb          .              .              .            -0.5000      
+P4.Mar          .              .              .            -1.0000      
+P4.Apr          .              .              .            -1.5000      
+P4.Mag          .              .              .            -2.0000      
+P4.Giu          .              .              .            -2.5000      
+P5.Gen       -50.0000       -50.0000       -50.0000         EPS         
+P5.Feb          .              .              .            -0.5000      
+P5.Mar          .              .              .            -1.0000      
+P5.Apr          .              .              .            -1.5000      
+P5.Mag          .              .              .            -2.0000      
+P5.Giu          .              .              .            -2.5000      
+P6.Gen       -50.0000       -50.0000       -50.0000         EPS         
+P6.Feb          .              .              .            -0.5000      
+P6.Mar          .              .              .            -1.0000      
+P6.Apr          .              .              .            -1.5000      
+P6.Mag          .              .              .            -2.0000      
+P6.Giu          .              .              .            -2.5000      
+P7.Gen       -50.0000       -50.0000       -50.0000         EPS         
+P7.Feb          .              .              .            -0.5000      
+P7.Mar          .              .              .            -1.0000      
+P7.Apr          .              .              .            -1.5000      
+P7.Mag          .              .              .            -2.0000      
+P7.Giu          .              .              .            -2.5000      
+
+---- EQU lavorazioni_b  Vincolo sulle lavorazioni al punto b
+
+                                LOWER          LEVEL          UPPER         MARGINAL
+
+smerigliatura       .Gen        -INF             .          1152.0000          .          
+smerigliatura       .Feb        -INF             .          1536.0000          .          
+smerigliatura       .Mar        -INF             .          1536.0000          .          
+smerigliatura       .Apr        -INF             .          1536.0000          .          
+smerigliatura       .Mag        -INF             .          1152.0000          .          
+smerigliatura       .Giu        -INF             .          1536.0000          .          
+foratura_verticale  .Gen        -INF             .           768.0000          .          
+foratura_verticale  .Feb        -INF             .           768.0000          .          
+foratura_verticale  .Mar        -INF             .           768.0000          .          
+foratura_verticale  .Apr        -INF             .           384.0000          .          
+foratura_verticale  .Mag        -INF             .           384.0000          .          
+foratura_verticale  .Giu        -INF             .           768.0000          .          
+foratura_orizzontale.Gen        -INF             .          1152.0000          .          
+foratura_orizzontale.Feb        -INF             .           384.0000          .          
+foratura_orizzontale.Mar        -INF             .          1152.0000          .          
+foratura_orizzontale.Apr        -INF             .          1152.0000          .          
+foratura_orizzontale.Mag        -INF             .          1152.0000          .          
+foratura_orizzontale.Giu        -INF             .           768.0000          .          
+alesatura           .Gen        -INF             .           384.0000          .          
+alesatura           .Feb        -INF             .           384.0000          .          
+alesatura           .Mar        -INF             .              .              .          
+alesatura           .Apr        -INF             .           384.0000          .          
+alesatura           .Mag        -INF             .           384.0000          .          
+alesatura           .Giu        -INF             .           384.0000          .          
+piallatura          .Gen        -INF             .           384.0000          .          
+piallatura          .Feb        -INF             .           384.0000          .          
+piallatura          .Mar        -INF             .           384.0000          .          
+piallatura          .Apr        -INF             .           384.0000          .          
+piallatura          .Mag        -INF             .           384.0000          .          
+piallatura          .Giu        -INF             .              .              .          
+
+---- EQU Nmax  Massimo numero di manutenzioni
+
+           LOWER          LEVEL          UPPER         MARGINAL
+
+Gen        -INF            3.0000         3.0000          .          
+Feb        -INF            3.0000         3.0000          .          
+Mar        -INF            3.0000         3.0000          .          
+Apr        -INF             .             3.0000          .          
+Mag        -INF             .             3.0000          .          
+Giu        -INF             .             3.0000          .          
+
+---- EQU manutenzioni  Vincolo sui macchinari in manutenzione nel reparto i (diverso dalla smerigliatura)
+
+                            LOWER          LEVEL          UPPER         MARGINAL
+
+foratura_verticale           2.0000         2.0000         2.0000          .          
+foratura_orizzontale         3.0000         3.0000         3.0000          .          
+alesatura                    1.0000         1.0000         1.0000          .          
+piallatura                   1.0000         1.0000         1.0000          .          
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- EQU manutenzi~         2.0000         2.0000         2.0000          .          
+
+  manutenzioni_1  Macchinari in manutenzione nel reparto di smerigliatura
+
+---- VAR x  produzione
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+P1.Gen          .              .            +INF             .          
+P1.Feb          .              .            +INF            0.5000      
+P1.Mar          .              .            +INF            1.0000      
+P1.Apr          .              .            +INF            1.5000      
+P1.Mag          .              .            +INF            2.0000      
+P1.Giu          .              .            +INF            2.5000      
+P2.Gen          .              .            +INF             .          
+P2.Feb          .              .            +INF            0.5000      
+P2.Mar          .              .            +INF            1.0000      
+P2.Apr          .              .            +INF            1.5000      
+P2.Mag          .              .            +INF            2.0000      
+P2.Giu          .              .            +INF            2.5000      
+P3.Gen          .              .            +INF             .          
+P3.Feb          .              .            +INF            0.5000      
+P3.Mar          .              .            +INF            1.0000      
+P3.Apr          .              .            +INF            1.5000      
+P3.Mag          .              .            +INF            2.0000      
+P3.Giu          .              .            +INF            2.5000      
+P4.Gen          .              .            +INF             .          
+P4.Feb          .              .            +INF            0.5000      
+P4.Mar          .              .            +INF            1.0000      
+P4.Apr          .              .            +INF            1.5000      
+P4.Mag          .              .            +INF            2.0000      
+P4.Giu          .              .            +INF            2.5000      
+P5.Gen          .              .            +INF             .          
+P5.Feb          .              .            +INF            0.5000      
+P5.Mar          .              .            +INF            1.0000      
+P5.Apr          .              .            +INF            1.5000      
+P5.Mag          .              .            +INF            2.0000      
+P5.Giu          .              .            +INF            2.5000      
+P6.Gen          .              .            +INF             .          
+P6.Feb          .              .            +INF            0.5000      
+P6.Mar          .              .            +INF            1.0000      
+P6.Apr          .              .            +INF            1.5000      
+P6.Mag          .              .            +INF            2.0000      
+P6.Giu          .              .            +INF            2.5000      
+P7.Gen          .              .            +INF             .          
+P7.Feb          .              .            +INF            0.5000      
+P7.Mar          .              .            +INF            1.0000      
+P7.Apr          .              .            +INF            1.5000      
+P7.Mag          .              .            +INF            2.0000      
+P7.Giu          .              .            +INF            2.5000      
+
+---- VAR v  vendita
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+P1.Gen          .              .           500.0000        10.0000      
+P1.Feb          .              .           600.0000         9.5000      
+P1.Mar          .              .           300.0000         9.0000      
+P1.Apr          .              .           200.0000         8.5000      
+P1.Mag          .              .              .             8.0000      
+P1.Giu          .              .           500.0000         7.5000      
+P2.Gen          .              .          1000.0000         6.0000      
+P2.Feb          .              .           500.0000         5.5000      
+P2.Mar          .              .           600.0000         5.0000      
+P2.Apr          .              .           300.0000         4.5000      
+P2.Mag          .              .           100.0000         4.0000      
+P2.Giu          .              .           500.0000         3.5000      
+P3.Gen          .              .           300.0000         8.0000      
+P3.Feb          .              .           200.0000         7.5000      
+P3.Mar          .              .              .             7.0000      
+P3.Apr          .              .           400.0000         6.5000      
+P3.Mag          .              .           500.0000         6.0000      
+P3.Giu          .              .           100.0000         5.5000      
+P4.Gen          .              .           300.0000         4.0000      
+P4.Feb          .              .              .             3.5000      
+P4.Mar          .              .              .             3.0000      
+P4.Apr          .              .           500.0000         2.5000      
+P4.Mag          .              .           100.0000         2.0000      
+P4.Giu          .              .           300.0000         1.5000      
+P5.Gen          .              .           800.0000        11.0000      
+P5.Feb          .              .           400.0000        10.5000      
+P5.Mar          .              .           500.0000        10.0000      
+P5.Apr          .              .           200.0000         9.5000      
+P5.Mag          .              .          1000.0000         9.0000      
+P5.Giu          .              .          1100.0000         8.5000      
+P6.Gen          .              .           200.0000         9.0000      
+P6.Feb          .              .           300.0000         8.5000      
+P6.Mar          .              .           400.0000         8.0000      
+P6.Apr          .              .              .             7.5000      
+P6.Mag          .              .           300.0000         7.0000      
+P6.Giu          .              .           500.0000         6.5000      
+P7.Gen          .              .           100.0000         3.0000      
+P7.Feb          .              .           150.0000         2.5000      
+P7.Mar          .              .           100.0000         2.0000      
+P7.Apr          .              .           100.0000         1.5000      
+P7.Mag          .              .              .             1.0000      
+P7.Giu          .              .            60.0000         0.5000      
+
+---- VAR s  stoccaggio
+
+              LOWER          LEVEL          UPPER         MARGINAL
+
+P1.Gen          .            50.0000       100.0000          .          
+P1.Feb          .            50.0000       100.0000          .          
+P1.Mar          .            50.0000       100.0000          .          
+P1.Apr          .            50.0000       100.0000          .          
+P1.Mag          .            50.0000       100.0000          .          
+P1.Giu        50.0000        50.0000        50.0000        -3.0000      
+P2.Gen          .            50.0000       100.0000          .          
+P2.Feb          .            50.0000       100.0000          .          
+P2.Mar          .            50.0000       100.0000          .          
+P2.Apr          .            50.0000       100.0000          .          
+P2.Mag          .            50.0000       100.0000          .          
+P2.Giu        50.0000        50.0000        50.0000        -3.0000      
+P3.Gen          .            50.0000       100.0000          .          
+P3.Feb          .            50.0000       100.0000          .          
+P3.Mar          .            50.0000       100.0000          .          
+P3.Apr          .            50.0000       100.0000          .          
+P3.Mag          .            50.0000       100.0000          .          
+P3.Giu        50.0000        50.0000        50.0000        -3.0000      
+P4.Gen          .            50.0000       100.0000          .          
+P4.Feb          .            50.0000       100.0000          .          
+P4.Mar          .            50.0000       100.0000          .          
+P4.Apr          .            50.0000       100.0000          .          
+P4.Mag          .            50.0000       100.0000          .          
+P4.Giu        50.0000        50.0000        50.0000        -3.0000      
+P5.Gen          .            50.0000       100.0000          .          
+P5.Feb          .            50.0000       100.0000          .          
+P5.Mar          .            50.0000       100.0000          .          
+P5.Apr          .            50.0000       100.0000          .          
+P5.Mag          .            50.0000       100.0000          .          
+P5.Giu        50.0000        50.0000        50.0000        -3.0000      
+P6.Gen          .            50.0000       100.0000          .          
+P6.Feb          .            50.0000       100.0000          .          
+P6.Mar          .            50.0000       100.0000          .          
+P6.Apr          .            50.0000       100.0000          .          
+P6.Mag          .            50.0000       100.0000          .          
+P6.Giu        50.0000        50.0000        50.0000        -3.0000      
+P7.Gen          .            50.0000       100.0000          .          
+P7.Feb          .            50.0000       100.0000          .          
+P7.Mar          .            50.0000       100.0000          .          
+P7.Apr          .            50.0000       100.0000          .          
+P7.Mag          .            50.0000       100.0000          .          
+P7.Giu        50.0000        50.0000        50.0000        -3.0000      
+
+                           LOWER          LEVEL          UPPER         MARGINAL
+
+---- VAR z                 -INF        -1050.0000        +INF             .          
+
+  z  variabile obiettivo
+
+---- VAR Nm  numero di macchinari di in manutenzione in i al mese t
+
+                                LOWER          LEVEL          UPPER         MARGINAL
+
+smerigliatura       .Gen          .              .             4.0000         EPS         
+smerigliatura       .Feb          .              .             4.0000         EPS         
+smerigliatura       .Mar          .             2.0000         4.0000         EPS         
+smerigliatura       .Apr          .              .             4.0000         EPS         
+smerigliatura       .Mag          .              .             4.0000         EPS         
+smerigliatura       .Giu          .              .             4.0000         EPS         
+foratura_verticale  .Gen          .              .             2.0000         EPS         
+foratura_verticale  .Feb          .             1.0000         2.0000         EPS         
+foratura_verticale  .Mar          .             1.0000         2.0000         EPS         
+foratura_verticale  .Apr          .              .             2.0000         EPS         
+foratura_verticale  .Mag          .              .             2.0000         EPS         
+foratura_verticale  .Giu          .              .             2.0000         EPS         
+foratura_orizzontale.Gen          .             1.0000         3.0000         EPS         
+foratura_orizzontale.Feb          .             2.0000         3.0000         EPS         
+foratura_orizzontale.Mar          .              .             3.0000         EPS         
+foratura_orizzontale.Apr          .              .             3.0000         EPS         
+foratura_orizzontale.Mag          .              .             3.0000         EPS         
+foratura_orizzontale.Giu          .              .             3.0000         EPS         
+alesatura           .Gen          .             1.0000         1.0000         EPS         
+alesatura           .Feb          .              .             1.0000         EPS         
+alesatura           .Mar          .              .             1.0000         EPS         
+alesatura           .Apr          .              .             1.0000         EPS         
+alesatura           .Mag          .              .             1.0000         EPS         
+alesatura           .Giu          .              .             1.0000         EPS         
+piallatura          .Gen          .             1.0000         1.0000         EPS         
+piallatura          .Feb          .              .             1.0000         EPS         
+piallatura          .Mar          .              .             1.0000         EPS         
+piallatura          .Apr          .              .             1.0000         EPS         
+piallatura          .Mag          .              .             1.0000         EPS         
+piallatura          .Giu          .              .             1.0000         EPS         
+
+
+**** REPORT SUMMARY :        0     NONOPT
+                             0 INFEASIBLE
+                             0  UNBOUNDED
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 12/16/22 12:41:40 Page 13
+Pianificazione Produzione - Dati
+E x e c u t i o n
+
+
+----    134 VARIABLE x.L  produzione
+
+                      ( ALL       0.000 )
+
+
+----    134 VARIABLE v.L  vendita
+
+                      ( ALL       0.000 )
+
+
+----    134 VARIABLE s.L  stoccaggio
+
+           Gen         Feb         Mar         Apr         Mag         Giu
+
+P1      50.000      50.000      50.000      50.000      50.000      50.000
+P2      50.000      50.000      50.000      50.000      50.000      50.000
+P3      50.000      50.000      50.000      50.000      50.000      50.000
+P4      50.000      50.000      50.000      50.000      50.000      50.000
+P5      50.000      50.000      50.000      50.000      50.000      50.000
+P6      50.000      50.000      50.000      50.000      50.000      50.000
+P7      50.000      50.000      50.000      50.000      50.000      50.000
+
+
+----    134 VARIABLE z.L                   =    -1050.000  variabile obiettivo
+
+
+EXECUTION TIME       =        0.101 SECONDS      4 MB  40.3.0 f227c22a DEX-DEG
+
+
+USER: GAMS Demo license for marco vinciguerra        G220927|0002CO-GEN
+      unibg, Italy                                             DL074718
+
+
+**** FILE SUMMARY
+
+Input      /Users/marcovinciguerra/Github/Gams/Ex 3.3 - Dati.gms
+Output     /Users/marcovinciguerra/Github/Gams/Ex 3.3 - Dati.lst

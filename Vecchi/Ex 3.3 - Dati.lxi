@@ -1,0 +1,57 @@
+B 3 C o m p i l a t i o n
+B 151 Equation Listing    SOLVE Production Using LP From line 109
+D 154 obiettivo
+D 159 bilancio
+D 170 lavorazioni
+B 182 Column Listing      SOLVE Production Using LP From line 109
+E 185 x
+E 213 v
+E 232 s
+E 254 z
+B 262 Range Statistics    SOLVE Production Using LP From line 109
+B 273 Model Statistics    SOLVE Production Using LP From line 109
+B 286 Solution Report     SOLVE Production Using LP From line 109
+F 319 obiettivo
+F 323 bilancio
+F 370 lavorazioni
+G 405 x
+G 452 v
+G 499 s
+G 548 z
+B 558 E x e c u t i o n
+I 558 x
+I 572 v
+I 585 s
+I 599 z
+B 603 Equation Listing    SOLVE Production_b Using MIP From line 133
+D 606 obiettivo
+D 611 bilancio
+D 622 lavorazioni_b
+D 633 Nmax
+D 644 manutenzioni
+D 655 manutenzioni_1
+B 661 Column Listing      SOLVE Production_b Using MIP From line 133
+E 664 x
+E 692 v
+E 711 s
+E 733 z
+E 740 Nm
+B 760 Range Statistics    SOLVE Production_b Using MIP From line 133
+B 771 Model Statistics    SOLVE Production_b Using MIP From line 133
+B 784 Solution Report     SOLVE Production_b Using MIP From line 133
+F 828 obiettivo
+F 832 bilancio
+F 879 lavorazioni_b
+F 914 Nmax
+F 925 manutenzioni
+F 936 manutenzioni_1
+G 940 x
+G 987 v
+G 1034 s
+G 1083 z
+G 1087 Nm
+B 1128 E x e c u t i o n
+I 1128 x
+I 1134 v
+I 1139 s
+I 1153 z

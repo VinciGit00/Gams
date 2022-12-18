@@ -1,0 +1,105 @@
+GAMS 40.3.0  f227c22a Sep 16, 2022          DEX-DEG x86 64bit/Mac OS X - 12/16/22 13:07:27 Page 1
+Trasporto con depositi - Dati
+C o m p i l a t i o n
+
+
+   2   
+      Dati dell'esercizio 4 (Modelli 3)
+   6   
+   7  Sets
+   8   I insieme degli stabilimenti  / Milano,Cremona /
+   9   J insieme dei depositi / Bergamo,Pavia,Piacenza,Mantova /
+  10   C insieme dei clienti / C1*C6 /
+  11  ;
+  12   
+  13  Parameters
+  14   max_prod(i)  Produzione massima dello stabilimento i
+  15   /
+  16  Milano  150000
+  17  Cremona 200000
+  18   /
+  19   
+  20   cap(j)  Capacit� del deposito j
+  21   /
+  22  Bergamo   70000
+  23  Pavia     50000
+  24  Piacenza 100000
+  25  Mantova   40000
+  26   /
+  27   
+  28   D(c)   Domanda del cliente c
+  29   /
+  30  C1  50000
+  31  C2  10000
+  32  C3  40000
+  33  C4  35000
+  34  C5  60000
+  35  C6  20000
+  36   /
+  37  ;
+  38   
+  39  Table ct1(i,j)  costi di trasporto da i a j
+  40           Bergamo Pavia Piacenza Mantova
+  41  Milano      0.5   0.5     1.0     0.2
+  42  Cremona       0   0.3     0.5     0.3
+  43  ;
+  44   
+  45  Table ct2(i,c)  costi di trasporto da i a c
+  46           C1  C2  C3  C4  C5  C6
+  47  Milano  1.0   0 1.5 2.0   0 1.0
+  48  Cremona 2.0   0   0   0   0   0
+  49  ;
+  50   
+  51  Table ct3(j,c)  costi di trasporto da j a c
+  52            C1  C2  C3  C4  C5  C6
+  53  Bergamo    0 1.5 0.5 1.5   0 1.0
+  54  Pavia    1.0 0.5 0.5 1.0 0.5   0
+  55  Piacenza   0 1.5 2.0   0 0.5 1.5
+  56  Mantova    0   0 0.2 1.5 0.5 1.5
+  57  ;
+  58   
+  59   
+  60  Variables
+  61      x(i,j) Trasporto i-j
+  62      y(i,c) Trasporto j-c
+  63      k(j,c) Trasporto j-c
+  64      z variabile obiettivo
+  65  ;
+  66   
+  67  Positive variables x, y, k;
+  68   
+  69  Equations
+  70      obiettivo    funzione obiettivo
+  71      cap_prod(i)  Vincolo sulla capacità produttiva
+  72      cap_stoc(j)  Vincolo sulla capacità di bilancio
+  73      bilancio(j)  bilancio sui depositi
+  74      domanda(j)   vincolo di domanda
+  75  ;
+  76   
+  77  x.fx(i,j)$(ct1(i,j) = 0) = 0;
+  78  y.fx(i,c)$(ct2(i,c) = 0) = 0;
+  79  k.fx(j,c)$(ct3(j,c) = 0) = 0;
+  80   
+  81  obiettivo.. z =e= sum((i,j), ct1(i,j)*x(i,j))+ sum((i,c), ct2(i,c)*y(i,c)) + sum((j,c), ct3(j,c)*k(j,c)) ;
+  82   
+  83   
+  84  cap_prod(i).. sum(j, x(i,j)) + sum(c, y(i,c)) =l= CP(i);
+****                                                     $140
+**** 140  Unknown symbol
+
+**** 1 ERROR(S)   0 WARNING(S)
+
+
+COMPILATION TIME     =        0.002 SECONDS      3 MB  40.3.0 f227c22a DEX-DEG
+
+
+USER: GAMS Demo license for marco vinciguerra        G220927|0002CO-GEN
+      unibg, Italy                                             DL074718
+
+
+**** FILE SUMMARY
+
+Input      /Users/marcovinciguerra/Github/Gams/Ex 3.4 - Dati.gms
+Output     /Users/marcovinciguerra/Github/Gams/Ex 3.4 - Dati.lst
+
+**** USER ERROR(S) ENCOUNTERED
