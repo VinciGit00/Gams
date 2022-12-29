@@ -9,10 +9,11 @@ Display F,c ;
 
 Variables
  x(j) Utilizzo di j
- y(j) Binaria: 1 se j Ë usata - 0 altrimenti
+ y(j) Binaria: 1 se j ÔøΩ usata - 0 altrimenti
  z    Variabile obiettivo (Costi totali)
 ;
 
+*Mai esplicare 
 Positive Variables x ;
 Binary Variables y ;
 
@@ -24,6 +25,7 @@ Equations
 
 obiettivo.. z =e= sum(j,F(j)*y(j) + c(j)*x(j)) ;
 utilizzo..  sum(j,x(j)) =e= D ;
+*Vincolo di corerenza
 coerenza(j).. x(j) =l= D*y(j) ;
 
 Model Fix /all/ ;
@@ -46,7 +48,10 @@ Equations
  obiettivo_b  Funzione obiettivo al punto b
  scomp(j)     Scomposizione di x(j)
 ;
+
+***Specifico l'upper bound -> valore massimo che pu√≤ assumere x1
 x1.up(j) = S ;
+
 obiettivo_b.. z =e= sum(j,   F(j)*y(j)
                          + c1(j)*x1(j)
                          + c2(j)*x2(j)) ;

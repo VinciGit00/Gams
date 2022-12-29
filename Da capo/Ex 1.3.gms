@@ -40,7 +40,8 @@ Variables
  z    Variabile obiettivo (Costi totali)
 ;
 
-Positive Variables x,I ;
+*Non mettere mai z come positive variable!
+Positive Variables x, I;
 
 Equations
  obiettivo   Funzione obiettivo
